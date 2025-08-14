@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Football Career Simulator — Dark Mode (Seasons + Injuries + Real Leagues)</title>
+<title>Football Career Simulator — v1 Big File (Dark)</title>
 <style>
   :root{
-    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
+    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444; --good:#10b981;
   }
   html,body{height:100%}
   body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif; display:grid; place-items:center}
-  .app{width:min(1200px,96vw); background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px}
+  .app{width:min(1250px,96vw); background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px}
   .row{display:flex; gap:16px; flex-wrap:wrap}
   .col{flex:1 1 320px}
   .card{background:#334155; border-radius:18px; padding:14px}
@@ -25,6 +25,7 @@
   .alt{background:var(--accent-2)}
   .warn{background:var(--warn)}
   .danger{background:var(--danger)}
+  .good{background:var(--good)}
   .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
   .stat{background:#1e293b; border-radius:12px; padding:10px; text-align:center; color:var(--ink)}
   .big{font-size:22px; font-weight:800}
@@ -36,14 +37,20 @@
   .divider{height:1px; background:#475569; margin:10px 0}
   .offer{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#1e293b; border-radius:12px; padding:10px; margin-bottom:8px}
   .chips{display:flex; gap:6px; flex-wrap:wrap}
+  .money{font-weight:800}
+  .flex{display:flex; gap:10px; align-items:center}
+  .w100{width:100%}
+  .section-title{display:flex; align-items:center; justify-content:space-between}
+  .rumor{padding:6px 10px; background:#1e293b; border-radius:10px; margin-bottom:6px}
+  svg{max-width:100%}
 </style>
 </head>
 <body>
   <div class="app" id="app">
     <!-- START SCREEN -->
     <div id="screen-start">
-      <h1>Football Career Simulator</h1>
-      <p class="muted">Dark, single-file MVP. Weekly turns. Now with <b>Skip Season</b>, <b>injuries</b>, <b>real leagues</b> (top-5, 10 clubs each), <b>prime/decline logic</b>, and two save slots.</p>
+      <h1>Football Career Simulator — v1</h1>
+      <p class="muted">Dark, single-file MVP. Includes origin country, leagues and cups, awards, economy, injuries & bans, contracts, taxes, agent, currency, rumors, GOAT mode, retirement summary, and skip season.</p>
       <div class="row">
         <div class="col card">
           <h2>player setup</h2>
@@ -52,6 +59,20 @@
             <select id="age">
               <option>18</option><option>19</option><option selected>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
               <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
+            </select>
+          </label><br><br>
+          <label>origin country
+            <select id="origin">
+              <option value="NO">Norway</option>
+              <option value="HU">Hungary</option>
+              <option value="GB">England</option>
+              <option value="ES">Spain</option>
+              <option value="IT">Italy</option>
+              <option value="DE">Germany</option>
+              <option value="FR">France</option>
+              <option value="PT">Portugal</option>
+              <option value="BR">Brazil</option>
+              <option value="AR">Argentina</option>
             </select>
           </label><br><br>
           <label>position
@@ -69,21 +90,31 @@
               <option value="normal" selected>normal</option>
               <option value="hard">hard</option>
             </select>
+          </label><br><br>
+          <label class="flex">currency
+            <select id="currency">
+              <option value="EUR">€ Euro</option>
+              <option value="GBP">£ Pound</option>
+              <option value="USD">$ Dollar</option>
+            </select>
+            <span class="muted">(league wage stays local, UI converts)</span>
           </label>
+          <label class="flex" style="margin-top:8px"><input id="goat" type="checkbox"> <span>G.O.A.T. mode (lucky boosts)</span></label>
           <div class="divider"></div>
           <div class="toolbar">
             <button class="accent" id="startBtn">Start career</button>
           </div>
         </div>
         <div class="col card">
-          <h2>what's included</h2>
+          <div class="section-title"><h2>what's inside</h2><span class="pill">v1</span></div>
           <ul>
-            <li>Skip Season simulates to season end fast</li>
-            <li>Injuries from 1 week to career-ending</li>
-            <li>Prime 20–26; decline accelerates if form is poor</li>
-            <li>Top-5 leagues, realistic salary ranges</li>
-            <li>Market value from OVR, fame, age, form, position</li>
-            <li>Two save slots (A/B)</li>
+            <li>Top-5 European leagues + MLS + Saudi + J-League (10 clubs each)</li>
+            <li>Contracts with duration, agent cut, taxes by league</li>
+            <li>Economy: balance, buy house/car, net income</li>
+            <li>Injuries & bans (doping), short to career-ending</li>
+            <li>Cups & awards at season end</li>
+            <li>Transfer rumors feed and offers</li>
+            <li>Skip season, retirement button with career summary graph</li>
           </ul>
         </div>
       </div>
@@ -104,7 +135,9 @@
               <span class="pill" id="salaryPill">Salary 0k/w</span>
               <span class="pill" id="famePill">Fame 0</span>
               <span class="pill" id="valuePill">Value €0.0m</span>
-              <span class="pill" id="injuryPill" class="hidden">Healthy</span>
+              <span class="pill" id="injuryPill">Healthy</span>
+              <span class="pill" id="banPill">No ban</span>
+              <span class="pill money" id="moneyPill">Balance €0.0m</span>
             </div>
             <div class="divider"></div>
             <div class="grid">
@@ -129,29 +162,36 @@
             <div class="toolbar" style="margin-top:8px">
               <button id="btnTrain" class="alt">Train</button>
               <button id="btnRest">Rest</button>
-              <button id="btnSocial" class="warn">Social media</button>
-              <button id="btnFindClub" class="accent">Request trials</button>
+              <button id="btnSocial" class="warn">Social</button>
+              <button id="btnFindClub" class="accent">Trials</button>
               <button id="btnOpenMarket" class="accent">Open market</button>
+              <button id="btnAskRaise" class="good">Ask raise</button>
               <button id="btnPlay" class="accent" disabled>Play match</button>
               <button id="btnSkipSeason" class="accent">Skip season</button>
+              <button id="btnRetire" class="danger">Retire</button>
             </div>
           </div>
           <div class="card">
-            <h2>log</h2>
+            <div class="section-title"><h2>log</h2><button id="btnRumors" class="alt">New rumors</button></div>
             <div id="log" class="log"></div>
+          </div>
+          <div class="card">
+            <h2>rumors</h2>
+            <div id="rumors" class="list"></div>
           </div>
         </div>
         <div class="col">
           <div class="card">
-            <h2>transfers</h2>
-            <div id="offers" class="list"></div>
+            <h2>transfers & contract</h2>
+            <div id="contractBox" class="muted">no active contract</div>
+            <div id="offers" class="list" style="margin-top:8px"></div>
             <div class="toolbar">
               <button id="btnRefreshOffers" class="alt">Refresh offers</button>
               <button id="btnLeave" class="danger">Leave club</button>
             </div>
           </div>
           <div class="card">
-            <h2>career</h2>
+            <h2>career & economy</h2>
             <div id="career" class="list"></div>
             <div class="divider"></div>
             <div class="toolbar">
@@ -161,139 +201,116 @@
               <button id="loadBBtn">Load B</button>
               <button id="clearBtn" class="danger">Clear saves</button>
             </div>
+            <div class="divider"></div>
+            <div class="toolbar">
+              <button id="btnBuyHouse" class="good">Buy house (€1.0m)</button>
+              <button id="btnBuyCar" class="good">Buy car (€0.1m)</button>
+            </div>
+            <div id="assets" class="muted" style="margin-top:8px"></div>
           </div>
         </div>
+      </div>
+
+      <!-- Retirement modal -->
+      <div id="retireModal" class="hidden card" style="position:fixed; inset:0; margin:auto; max-width:760px; max-height:80vh; overflow:auto; padding:20px; border:2px solid #475569">
+        <h2>Career summary</h2>
+        <div id="retireSummary"></div>
+        <div id="retireGraph" style="margin-top:10px"></div>
+        <div class="toolbar" style="margin-top:10px"><button id="closeRetire" class="alt">Close</button></div>
       </div>
     </div>
   </div>
 
 <script>
 (function(){
+  'use strict';
   // ====== CONSTANTS ======
-  const SEASON_WEEKS = 40; // requested 40-week season
+  const SEASON_WEEKS = 40;
+  const FX = { EUR:1, GBP:1.17, USD:0.92 }; // to EUR
+  const CUR = { EUR:'€', GBP:'£', USD:'$' };
 
-  // Top-5 leagues, 10 clubs each with rough level and salary band multipliers
+  // Leagues: top-5 + MLS + Saudi + J-League (10 clubs each), with prestige, salaryMult, tax, localCurrency
+  const L = (name, prestige, salaryMult, tax, c, clubs) => ({name, prestige, salaryMult, tax, c, clubs});
+  const C = (n,lvl)=>({n,lvl});
   const LEAGUES = [
-    {name:'Premier League', prestige:1.00, salaryMult:1.6, clubs:[
-      {n:'Manchester City',lvl:88},{n:'Arsenal',lvl:86},{n:'Liverpool',lvl:86},{n:'Manchester United',lvl:84},{n:'Chelsea',lvl:83},
-      {n:'Tottenham',lvl:84},{n:'Newcastle',lvl:82},{n:'Aston Villa',lvl:83},{n:'Brighton',lvl:81},{n:'West Ham',lvl:80}
-    ]},
-    {name:'La Liga', prestige:0.95, salaryMult:1.4, clubs:[
-      {n:'Real Madrid',lvl:90},{n:'Barcelona',lvl:88},{n:'Atlético Madrid',lvl:86},{n:'Real Sociedad',lvl:83},{n:'Sevilla',lvl:82},
-      {n:'Villarreal',lvl:82},{n:'Valencia',lvl:81},{n:'Athletic Club',lvl:82},{n:'Real Betis',lvl:82},{n:'Celta Vigo',lvl:79}
-    ]},
-    {name:'Serie A', prestige:0.9, salaryMult:1.2, clubs:[
-      {n:'Inter',lvl:88},{n:'AC Milan',lvl:86},{n:'Juventus',lvl:86},{n:'Napoli',lvl:85},{n:'Roma',lvl:83},
-      {n:'Lazio',lvl:82},{n:'Atalanta',lvl:84},{n:'Fiorentina',lvl:81},{n:'Bologna',lvl:80},{n:'Torino',lvl:79}
-    ]},
-    {name:'Bundesliga', prestige:0.92, salaryMult:1.25, clubs:[
-      {n:'Bayern Munich',lvl:90},{n:'Borussia Dortmund',lvl:86},{n:'RB Leipzig',lvl:85},{n:'Bayer Leverkusen',lvl:86},{n:'VfB Stuttgart',lvl:84},
-      {n:'Eintracht Frankfurt',lvl:82},{n:'Wolfsburg',lvl:81},{n:'Freiburg',lvl:81},{n:'Hoffenheim',lvl:80},{n:'Gladbach',lvl:80}
-    ]},
-    {name:'Ligue 1', prestige:0.85, salaryMult:1.0, clubs:[
-      {n:'Paris SG',lvl:90},{n:'Monaco',lvl:84},{n:'Lille',lvl:83},{n:'Marseille',lvl:83},{n:'Lyon',lvl:82},
-      {n:'Nice',lvl:82},{n:'Rennes',lvl:82},{n:'Nantes',lvl:78},{n:'Montpellier',lvl:78},{n:'Saint-Étienne',lvl:77}
-    ]}
+    L('Premier League',1.00,1.6,0.45,'GBP',[C('Manchester City',88),C('Arsenal',86),C('Liverpool',86),C('Manchester United',84),C('Chelsea',83),C('Tottenham',84),C('Newcastle',82),C('Aston Villa',83),C('Brighton',81),C('West Ham',80)]),
+    L('La Liga',0.95,1.4,0.43,'EUR',[C('Real Madrid',90),C('Barcelona',88),C('Atlético Madrid',86),C('Real Sociedad',83),C('Sevilla',82),C('Villarreal',82),C('Valencia',81),C('Athletic Club',82),C('Real Betis',82),C('Celta Vigo',79)]),
+    L('Serie A',0.90,1.2,0.42,'EUR',[C('Inter',88),C('AC Milan',86),C('Juventus',86),C('Napoli',85),C('Roma',83),C('Lazio',82),C('Atalanta',84),C('Fiorentina',81),C('Bologna',80),C('Torino',79)]),
+    L('Bundesliga',0.92,1.25,0.40,'EUR',[C('Bayern Munich',90),C('Borussia Dortmund',86),C('RB Leipzig',85),C('Bayer Leverkusen',86),C('VfB Stuttgart',84),C('Eintracht Frankfurt',82),C('Wolfsburg',81),C('Freiburg',81),C('Hoffenheim',80),C('Gladbach',80)]),
+    L('Ligue 1',0.85,1.0,0.45,'EUR',[C('Paris SG',90),C('Monaco',84),C('Lille',83),C('Marseille',83),C('Lyon',82),C('Nice',82),C('Rennes',82),C('Nantes',78),C('Montpellier',78),C('Saint-Étienne',77)]),
+    L('MLS',0.70,0.7,0.30,'USD',[C('LA Galaxy',80),C('LAFC',82),C('Inter Miami',83),C('Seattle Sounders',79),C('NYCFC',78),C('Atlanta United',79),C('Philadelphia Union',78),C('Portland Timbers',77),C('Toronto FC',76),C('Columbus Crew',80)]),
+    L('Saudi Pro League',0.80,1.5,0.0,'USD',[C('Al Nassr',84),C('Al Hilal',86),C('Al Ahli',82),C('Al Ittihad',82),C('Al Ettifaq',78),C('Al Shabab',78),C('Al Fateh',76),C('Al Taawoun',77),C('Al Riyadh',75),C('Damac',75)]),
+    L('J-League',0.65,0.6,0.20,'USD',[C('Kawasaki Frontale',78),C('Yokohama F. Marinos',79),C('Urawa Reds',78),C('Kashima Antlers',77),C('Gamba Osaka',76),C('Vissel Kobe',80),C('FC Tokyo',76),C('Nagoya Grampus',77),C('Sanfrecce Hiroshima',78),C('Cerezo Osaka',77)])
   ];
+
+  const AWARDS = ['Ballon d’Or','Golden Boot','Playmaker Award','Puskás','Best GK'];
 
   // ====== STATE ======
   const s = {
-    name:"", pos:"ST", age:20, season:1, week:1,
+    name:"", origin:'NO', pos:"ST", age:20, goat:false, currency:'EUR', season:1, week:1,
     skills:{shoot:55, pass:55, pace:55, def:55, phys:55, gk:40},
     energy:80, morale:70, fame:0, ovr:60,
     club:null, league:null, salary:0, fixture:null,
-    injury:null, // {name, weeks}
-    stats:{apps:0, goals:0, ast:0, cs:0, ratingSum:0},
-    offers:[]
+    injury:null, ban:null, // {name,weeks}
+    contract:null, // {weeks, wageK, agentPct, clauseM}
+    money:0, assets:{house:false, car:false},
+    stats:{apps:0, goals:0, ast:0, cs:0, ratingSum:0, seasons:[]},
+    offers:[], rumors:[], valueHistory:[], _vhStamp:null, raiseCooldownUntilSeason:null
   };
 
   // ====== UTIL ======
   const rnd = (a,b)=>Math.random()*(b-a)+a;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const round=(v,d=0)=>{const m=Math.pow(10,d);return Math.round(v*m)/m};
-  const money = (m)=>`€${round(m,1)}m`;
   const pick = (arr)=>arr[Math.floor(Math.random()*arr.length)];
+  const moneyFmt = (m,cur=s.currency)=>`${CUR[cur]}${round((cur==='GBP'||cur==='USD')? m/FX[cur] : m,2)}m`;
+  const kToWeeklyNet = (k, lg)=>{ // k=thousand per week gross
+    const agent = s.contract? s.contract.agentPct : 0.03;
+    const tax = lg?.tax ?? 0.4;
+    const gross = k;
+    const afterAgent = gross*(1-agent);
+    const net = afterAgent*(1-tax);
+    return net; // in thousands of local currency per week
+  };
 
   // ====== DOM ======
   const $ = (id)=>document.getElementById(id);
-  const screenStart = $('screen-start');
-  const screenGame = $('screen-game');
-  const startBtn = $('startBtn');
-  const nameIn = $('name');
-  const ageIn = $('age');
-  const posIn = $('pos');
-  const diffIn = $('diff');
+  const screenStart=$('screen-start'), screenGame=$('screen-game');
+  const startBtn=$('startBtn');
+  const nameIn=$('name'), ageIn=$('age'), originIn=$('origin'), posIn=$('pos'), diffIn=$('diff'), currencyIn=$('currency'), goatIn=$('goat');
 
-  const clubName = $('clubName');
-  const seasonPill = $('seasonPill');
-  const weekPill = $('weekPill');
-  const agePill = $('agePill');
-  const posPill = $('posPill');
-  const leaguePill = $('leaguePill');
-  const salaryPill = $('salaryPill');
-  const famePill = $('famePill');
-  const valuePill = $('valuePill');
-  const injuryPill = $('injuryPill');
-  const fixtureEl = $('fixture');
-  const logEl = $('log');
-  const careerEl = $('career');
-  const offersEl = $('offers');
+  const clubName=$('clubName'), seasonPill=$('seasonPill'), weekPill=$('weekPill'), agePill=$('agePill'), posPill=$('posPill'), leaguePill=$('leaguePill'), salaryPill=$('salaryPill'), famePill=$('famePill'), valuePill=$('valuePill'), injuryPill=$('injuryPill'), banPill=$('banPill'), moneyPill=$('moneyPill');
+  const fixtureEl=$('fixture'), logEl=$('log'), rumorsEl=$('rumors');
+  const contractBox=$('contractBox'), offersEl=$('offers');
+  const careerEl=$('career'), assetsEl=$('assets');
 
-  const ovrEl = $('ovr');
-  const eEl = $('energy');
-  const mEl = $('morale');
-  const shEl = $('shoot');
-  const paEl = $('pass');
-  const pcEl = $('pace');
-  const dfEl = $('def');
-  const phEl = $('phys');
-  const gkEl = $('gk');
+  const ovrEl=$('ovr'), eEl=$('energy'), mEl=$('morale'), shEl=$('shoot'), paEl=$('pass'), pcEl=$('pace'), dfEl=$('def'), phEl=$('phys'), gkEl=$('gk');
 
-  const btnTrain = $('btnTrain');
-  const btnRest = $('btnRest');
-  const btnSocial = $('btnSocial');
-  const btnFind = $('btnFindClub');
-  const btnOpenMarket = $('btnOpenMarket');
-  const btnPlay = $('btnPlay');
-  const btnSkipSeason = $('btnSkipSeason');
+  const btnTrain=$('btnTrain'), btnRest=$('btnRest'), btnSocial=$('btnSocial'), btnFind=$('btnFindClub'), btnOpenMarket=$('btnOpenMarket'), btnAskRaise=$('btnAskRaise'), btnPlay=$('btnPlay'), btnSkipSeason=$('btnSkipSeason'), btnRetire=$('btnRetire');
+  const btnRumors=$('btnRumors'), btnRefreshOffers=$('btnRefreshOffers'), btnLeave=$('btnLeave');
+  const saveABtn=$('saveABtn'), loadABtn=$('loadABtn'), saveBBtn=$('saveBBtn'), loadBBtn=$('loadBBtn'), clearBtn=$('clearBtn');
+  const btnBuyHouse=$('btnBuyHouse'), btnBuyCar=$('btnBuyCar');
 
-  const btnRefreshOffers = $('btnRefreshOffers');
-  const btnLeave = $('btnLeave');
-
-  const saveABtn = $('saveABtn');
-  const loadABtn = $('loadABtn');
-  const saveBBtn = $('saveBBtn');
-  const loadBBtn = $('loadBBtn');
-  const clearBtn = $('clearBtn');
+  const retireModal=$('retireModal'), retireSummary=$('retireSummary'), retireGraph=$('retireGraph'), closeRetire=$('closeRetire');
 
   // ====== CORE ======
-  function log(t){
-    const time = `S${s.season}W${s.week}`;
-    logEl.textContent = `${time} • ${t}\n` + logEl.textContent;
-  }
+  function log(t){ const time=`S${s.season}W${s.week}`; logEl.textContent = `${time} • ${t}\n` + logEl.textContent; }
 
   function updateOVR(){
-    const posWeights = {
-      ST:{shoot:3, pass:2, pace:3, def:1, phys:2, gk:0.5},
-      CAM:{shoot:2, pass:3, pace:2, def:1, phys:2, gk:0.5},
-      CM:{shoot:2, pass:2, pace:2, def:2, phys:2, gk:0.5},
-      CB:{shoot:1, pass:1.5, pace:2, def:3, phys:3, gk:0.5},
-      GK:{shoot:0.5, pass:1, pace:1, def:1.5, phys:2, gk:4}
-    }[s.pos] || {shoot:2, pass:2, pace:2, def:2, phys:2, gk:1};
-    let sum=0, weight=0;
-    for(const k in s.skills){ sum += s.skills[k]*posWeights[k]; weight += posWeights[k]; }
-    s.ovr = round(sum/weight);
+    const posWeights = { ST:{shoot:3,pass:2,pace:3,def:1,phys:2,gk:0.5}, CAM:{shoot:2,pass:3,pace:2,def:1,phys:2,gk:0.5}, CM:{shoot:2,pass:2,pace:2,def:2,phys:2,gk:0.5}, CB:{shoot:1,pass:1.5,pace:2,def:3,phys:3,gk:0.5}, GK:{shoot:0.5,pass:1,pace:1,def:1.5,phys:2,gk:4} }[s.pos] || {shoot:2,pass:2,pace:2,def:2,phys:2,gk:1};
+    let sum=0, weight=0; for(const k in s.skills){ sum+=s.skills[k]*posWeights[k]; weight+=posWeights[k]; }
+    s.ovr = Math.round(sum/weight);
   }
 
-  function marketValue(){
-    const posMult = {ST:1.15, CAM:1.12, CM:1.0, CB:0.9, GK:0.85}[s.pos] || 1.0;
-    let ageF = 1.0; // prime 20–26
-    if(s.age <= 19) ageF = 1.25; else if (s.age <= 23) ageF = 1.2; else if (s.age <= 26) ageF = 1.15; else if (s.age <= 29) ageF = 1.0; else if (s.age <= 32) ageF = 0.9; else ageF = 0.7;
-    const form = s.stats.apps ? s.stats.ratingSum/s.stats.apps : 6.0;
-    const ovrF = Math.pow(s.ovr/60, 2);
-    const fameF = 1 + s.fame/400;
-    const leaguePrestige = s.league ? s.league.prestige : 0.8;
-    const base = 0.8 + ovrF*9 + Math.max(0,form-6)*2; // in millions
+  function marketValueEUR(){
+    const posMult = {ST:1.15,CAM:1.12,CM:1.0,CB:0.9,GK:0.85}[s.pos]||1.0;
+    let ageF=1.0; if(s.age<=19)ageF=1.25; else if(s.age<=23)ageF=1.2; else if(s.age<=26)ageF=1.15; else if(s.age<=29)ageF=1.0; else if(s.age<=32)ageF=0.85; else ageF=0.65;
+    const form = s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
+    const ovrF = Math.pow(s.ovr/60,2);
+    const fameF = 1 + s.fame/350;
+    const leaguePrestige = s.league? s.league.prestige : 0.8;
+    let base = 0.8 + ovrF*9 + Math.max(0,form-6)*2; // millions
+    if(s.goat) base *= 1.15;
     return round(base * posMult * ageF * fameF * leaguePrestige, 1);
   }
 
@@ -305,312 +322,223 @@
     agePill.textContent = `Age ${s.age}`;
     posPill.textContent = s.pos;
     leaguePill.textContent = `League: ${s.league? s.league.name : 'None'}`;
-    salaryPill.textContent = `Salary ${s.salary}k/w`; 
+    salaryPill.textContent = `Salary ${s.salary}k/w`;
     famePill.textContent = `Fame ${s.fame}`;
-    valuePill.textContent = `Value ${money(marketValue())}`;
+    const valEUR = marketValueEUR();
+    valuePill.textContent = `Value ${moneyFmt(valEUR,'EUR')}`;
+    // push value history once per week
+    const stamp = `${s.season}-${s.week}`;
+    if(!s._vhStamp || s._vhStamp!==stamp){
+      s.valueHistory.push({season:s.season, week:s.week, age:s.age, value:valEUR});
+      s._vhStamp = stamp;
+    }
 
     injuryPill.textContent = s.injury ? `Injured: ${s.injury.name} (${s.injury.weeks}w)` : 'Healthy';
     injuryPill.style.background = s.injury ? '#b91c1c' : '#16a34a';
+    banPill.textContent = s.ban ? `Banned: ${s.ban.name} (${s.ban.weeks}w)` : 'No ban';
 
-    ovrEl.textContent = s.ovr;
-    eEl.textContent = s.energy;
-    mEl.textContent = s.morale;
-    shEl.textContent = s.skills.shoot;
-    paEl.textContent = s.skills.pass;
-    pcEl.textContent = s.skills.pace;
-    dfEl.textContent = s.skills.def;
-    phEl.textContent = s.skills.phys;
-    gkEl.textContent = s.skills.gk;
+    moneyPill.textContent = `Balance ${moneyFmt(s.money)}`;
 
-    if(s.fixture){
-      fixtureEl.textContent = `${s.fixture.home} vs ${s.fixture.away} • opp ${s.fixture.strength}`;
-    } else {
-      fixtureEl.textContent = s.club ? 'next match to be scheduled' : 'no club, request trials or open market';
-    }
+    ovrEl.textContent = s.ovr; eEl.textContent = s.energy; mEl.textContent = s.morale;
+    shEl.textContent = s.skills.shoot; paEl.textContent = s.skills.pass; pcEl.textContent = s.skills.pace; dfEl.textContent = s.skills.def; phEl.textContent = s.skills.phys; gkEl.textContent = s.skills.gk;
 
-    btnPlay.disabled = !s.fixture || !!s.injury; // can't play injured
+    fixtureEl.textContent = s.fixture? `${s.fixture.home} vs ${s.fixture.away} • opp ${s.fixture.strength} ${s.fixture.cup? '• '+s.fixture.cup:''}` : (s.club? 'next match to be scheduled' : 'no club, request trials or open market');
+
+    btnPlay.disabled = !s.fixture || !!s.injury || !!s.ban;
+
+    renderContract();
     renderOffers();
     renderCareer();
+    renderAssets();
   }
 
-  function nextWeek(){
-    s.week += 1; if(s.week > SEASON_WEEKS){ s.week = 1; s.season += 1; s.age += 1; log(`new season. age now ${s.age}`); endSeasonAdjustments(); }
-    // injury countdown + decay while injured
-    if(s.injury){
-      s.injury.weeks -= 1;
-      // injured decay 2x faster than idle: small all-skill dip
-      for(const k in s.skills){ s.skills[k] = clamp(s.skills[k] - 1, 30, 99); }
-      if(s.injury.weeks <= 0){ log(`injury healed: ${s.injury.name}`); s.injury = null; }
-    }
+  function renderContract(){
+    if(!s.contract){ contractBox.textContent = 'no active contract'; return; }
+    const clauseStr = s.contract.clauseM ? ' • release clause '+moneyFmt(s.contract.clauseM,'EUR') : '';
+    contractBox.innerHTML = 'contract: <b>'+s.contract.weeks+' weeks</b> • wage <b>'+s.salary+'k/w</b> • agent <b>'+Math.round(s.contract.agentPct*100)+'%</b>'+clauseStr;
   }
 
-  // after each season apply form-based aging effects
-  function endSeasonAdjustments(){
-    const avg = s.stats.apps ? s.stats.ratingSum/s.stats.apps : 6.0;
-    if(s.age > 26){
-      const decline = avg < 6.8 ? 2 : 0; // poor form speeds decline
-      const baseDecline = s.age >= 30 ? 2 : 1;
-      const totalDecline = baseDecline + decline;
-      for(const k in s.skills){ s.skills[k] = clamp(s.skills[k] - totalDecline, 30, 99); }
-      log(`aging decline applied: -${totalDecline} to core skills`);
-    }
-    // small morale reset and energy refill
-    s.energy = 85; s.morale = clamp(s.morale + 2, 0, 100);
-    // reset season stats tracking but keep career sums
-    s.stats.apps = 0; s.stats.goals = 0; s.stats.ast = 0; s.stats.cs = 0; s.stats.ratingSum = 0;
-  }
-
-  function randomInjury(){
-    const table = [
-      {name:'Bruised foot', min:1, max:2, prob:0.35},
-      {name:'Muscle strain', min:2, max:4, prob:0.27},
-      {name:'Sprained ankle', min:3, max:6, prob:0.18},
-      {name:'Ligament tear', min:8, max:16, prob:0.08},
-      {name:'Fracture', min:10, max:20, prob:0.06},
-      {name:'Career-ending', min:999, max:999, prob:0.01},
-      {name:'Concussion', min:1, max:3, prob:0.05}
-    ];
-    const r = Math.random();
-    let acc = 0;
-    for(const it of table){ acc += it.prob; if(r <= acc){ return it; } }
-    return null;
-  }
-
-  function maybeInjure(context){
-    if(s.injury) return; // already injured
-    const base = context==='match' ? 0.08 : 0.03; // higher in matches
-    const physProtect = (s.skills.phys-50)/200; // better phys reduces chance
-    const chance = clamp(base - physProtect, 0.01, 0.12);
-    if(Math.random() < chance){
-      const inj = randomInjury();
-      if(!inj) return;
-      if(inj.name==='Career-ending'){ s.injury = {name:inj.name,weeks:999}; log(`career-ending injury! You should retire.`); }
-      else { const w = Math.round(rnd(inj.min, inj.max)); s.injury = {name:inj.name,weeks:w}; log(`injured: ${inj.name} (${w} weeks)`); }
-    }
-  }
-
-  function clubFromLeague(lg, idx){
-    const c = lg.clubs[idx];
-    return {name:c.n, level:c.lvl, league:lg};
-  }
-
-  // schedule realistic matches against random clubs across league
-  function scheduleMatch(){
-    if(!s.club){ s.fixture = null; return; }
-    const lg = s.league || pick(LEAGUES);
-    const oppIdx = Math.floor(Math.random()*lg.clubs.length);
-    const opp = lg.clubs[oppIdx];
-    s.fixture = {home:s.club.name, away:opp.n, strength:opp.lvl};
-    log(`match scheduled: ${s.fixture.home} vs ${s.fixture.away} (opp ${opp.lvl})`);
-  }
-
-  // ====== ACTIONS ======
-  function train(){
-    if(s.injury){ log('cannot train while injured'); nextWeek(); draw(); return; }
-    const gain = Math.round(rnd(1,3));
-    const target = s.pos === 'GK' ? 'gk' : ['shoot','pass','pace','def','phys'][Math.floor(Math.random()*5)];
-    s.skills[target] = clamp(s.skills[target] + gain, 30, 99);
-    s.energy = clamp(s.energy - Math.round(rnd(5,10)), 0, 100);
-    s.morale = clamp(s.morale + Math.round(rnd(0,2)), 0, 100);
-    maybeInjure('train');
-    log(`trained ${target} +${gain}`);
-    nextWeek();
-    if(s.club && !s.fixture) scheduleMatch();
-    draw();
-  }
-
-  function rest(){
-    const en = Math.round(rnd(12,20));
-    s.energy = clamp(s.energy + en, 0, 100);
-    s.morale = clamp(s.morale + Math.round(rnd(1,4)), 0, 100);
-    log(`rest day +${en} energy`);
-    nextWeek();
-    if(s.club && !s.fixture) scheduleMatch();
-    draw();
-  }
-
-  function social(){
-    const fameGain = Math.round(rnd(3,9));
-    s.fame = clamp(s.fame + fameGain, 0, 999);
-    s.morale = clamp(s.morale + Math.round(rnd(1,4)), 0, 100);
-    s.energy = clamp(s.energy - Math.round(rnd(2,6)), 0, 100);
-    log(`social media +${fameGain} fame`);
-    nextWeek();
-    if(s.club && !s.fixture) scheduleMatch();
-    draw();
-  }
-
-  // ====== TRANSFERS / OFFERS ======
-  function salaryFor(level, lg){
-    // approximate thousands per week by level and league multiplier
-    const base = clamp((level-55)*1.5 + rnd(3,10), 2, 300); // k/w
-    return Math.round(base * (lg?.salaryMult || 1));
-  }
-
-  function generateOffers(n=4){
-    const out=[];
-    for(let i=0;i<n;i++){
-      const lg = pick(LEAGUES);
-      const club = pick(lg.clubs);
-      // quality scales with player ovr, fame, league prestige
-      const base = s.ovr + s.fame*0.35 + lg.prestige*10;
-      const level = clamp(Math.round(base/1.7 + rnd(-8,8)), 55, 92);
-      const salary = salaryFor(level, lg);
-      out.push({name:club.n, level, salary, league:lg});
-    }
-    out.sort((a,b)=>b.level-a.level);
-    return out;
-  }
-
-  function renderOffers(){
-    offersEl.innerHTML = '';
-    s.offers.forEach((o,idx)=>{
-      const el = document.createElement('div');
-      el.className='offer';
-      el.innerHTML = `<div>
-        <div><b>${o.name}</b> • level ${o.level}</div>
-        <div class="muted">${o.league.name} • salary ${o.salary}k/w</div>
-      </div>
-      <div class="toolbar"><button class="accent" data-idx="${idx}">Sign</button></div>`;
-      offersEl.appendChild(el);
-    });
-    Array.from(offersEl.querySelectorAll('button[data-idx]')).forEach(btn=>{
-      btn.onclick = ()=>{
-        const i = parseInt(btn.getAttribute('data-idx'));
-        const offer = s.offers[i];
-        s.club = {name: offer.name, level: offer.level};
-        s.league = offer.league;
-        s.salary = offer.salary;
-        s.offers = [];
-        log(`signed for ${s.club.name} (${s.league.name}) • ${s.salary}k/w`);
-        scheduleMatch();
-        draw();
-      };
-    });
-  }
-
-  function refreshOffers(){ s.offers = generateOffers(5); log('market refreshed'); renderOffers(); }
-  function leaveClub(){ if(!s.club){ log('already free agent'); return; } log(`left ${s.club.name}`); s.club=null; s.league=null; s.salary=0; s.fixture=null; draw(); }
-  function trials(){ s.offers = generateOffers(4); log('trial offers arrived'); renderOffers(); nextWeek(); draw(); }
-  function openMarket(){ refreshOffers(); nextWeek(); draw(); }
-
-  // ====== MATCH ENGINE ======
-  function playMatch(){
-    if(!s.fixture || s.injury) return;
-    const opp = s.fixture.strength;
-    const fatigue = clamp(1 - (s.energy/140), 0.6, 1.0);
-    const moraleBoost = 1 + (s.morale - 50)/200;
-    const posBias = s.pos==='ST'?1.08: s.pos==='CAM'?1.05: s.pos==='CM'?1.0: s.pos==='CB'?0.95: s.pos==='GK'?0.9:1.0;
-    const perfBase = s.ovr * moraleBoost * posBias * (1 - (1-fatigue)*0.5);
-    const variance = rnd(-8, 8);
-    const performance = clamp(perfBase + variance, 30, 99);
-
-    const teamStrength = (s.club? s.club.level : 60) + (performance - 60)*0.2;
-    const oppStrength = opp;
-    const goalChance = clamp((teamStrength - oppStrength + 10)/40, 0.08, 0.65);
-    const concedeChance = clamp((oppStrength - teamStrength + 10)/40, 0.08, 0.65);
-    const goalsFor = Math.max(0, Math.round(rnd(0,3) + (Math.random()<goalChance?1:0)));
-    const goalsAgainst = Math.max(0, Math.round(rnd(0,3) + (Math.random()<concedeChance?1:0)));
-
-    let goals=0, ast=0, cs=0;
-    if(['ST','CAM','CM'].includes(s.pos)){
-      for(let i=0;i<goalsFor;i++) if(Math.random()< (0.35 + (performance-60)/150)) goals++;
-      for(let i=0;i<goalsFor-goals;i++) if(Math.random()<0.4) ast++;
-    } else if(['CB','GK'].includes(s.pos)){
-      cs = goalsAgainst===0 ? 1 : 0;
-    }
-
-    const rating = clamp(Math.round(6 + (performance-60)/10 + goals*0.6 + ast*0.4 + cs*0.5 + rnd(-0.5,0.5)), 4, 10);
-
-    s.stats.apps++; s.stats.goals+=goals; s.stats.ast+=ast; s.stats.cs+=cs; s.stats.ratingSum+=rating;
-    s.energy = clamp(s.energy - Math.round(rnd(12,20)), 0, 100);
-    s.morale = clamp(s.morale + (rating>=7?2:-1), 0, 100);
-    s.fame = clamp(s.fame + (rating>=8?3:2) + goals, 0, 999);
-
-    log(`match ${s.fixture.home} ${goalsFor}-${goalsAgainst} ${s.fixture.away} • rating ${rating} • g ${goals} a ${ast}${cs?` • clean sheet`:''}`);
-
-    const xp = Math.round(performance/10 + rating + goals*2 + ast*1.5 + cs*1.5);
-    const targets = s.pos==='GK' ? ['gk','pass','phys'] : ['shoot','pass','pace','def','phys'];
-    for(let i=0;i<2;i++){
-      const t = targets[Math.floor(Math.random()*targets.length)];
-      s.skills[t] = clamp(s.skills[t] + Math.max(1, Math.round(xp/20)), 30, 99);
-    }
-
-    if(s.salary) log(`salary earned ${s.salary}k`);
-
-    // injury roll after match
-    maybeInjure('match');
-
-    s.fixture = null;
-    nextWeek();
-    scheduleMatch();
-    draw();
-  }
-
-  // ====== SKIP SEASON ======
-  function skipSeason(){
-    let safety = 200; // prevent infinite
-    while(s.week <= SEASON_WEEKS && safety-- > 0){
-      // auto schedule if missing
-      if(s.club && !s.fixture) scheduleMatch();
-      if(s.injury){ rest(); continue; }
-      if(s.fixture) { playMatch(); }
-      else { // no fixture yet
-        if(!s.club){ trials(); } else { rest(); }
-      }
-      if(s.week === 1) break; // new season started
-    }
-    log('season skipped');
-    draw();
-  }
-
-  // ====== RENDER SMALL PANELS ======
   function renderCareer(){
     const avg = s.stats.apps ? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00';
     careerEl.innerHTML = `
       <div>apps: <b>${s.stats.apps}</b> • goals: <b>${s.stats.goals}</b> • assists: <b>${s.stats.ast}</b> • clean sheets: <b>${s.stats.cs}</b></div>
       <div>avg rating: <b>${avg}</b></div>
       <div>club: <b>${s.club? s.club.name : 'free agent'}</b> • league: <b>${s.league? s.league.name : '—'}</b> • salary: <b>${s.salary}k/w</b></div>
-      <div>market value: <b>${money(marketValue())}</b></div>
+      <div>market value: <b>${moneyFmt(marketValueEUR(),'EUR')}</b></div>
     `;
   }
+  function renderAssets(){
+    assetsEl.innerHTML = `assets: ${s.assets.house? '🏠 house' : '—'} ${s.assets.car? ' • 🚗 car':''}`;
+  }
 
-  // ====== SAVE/LOAD (2 slots) ======
+  // ====== WEEK / SEASON FLOW ======
+  function nextWeek(){
+    // pay salary weekly if contracted
+    if(s.contract && s.league){
+      const local = s.league.c; // local currency
+      const netK = kToWeeklyNet(s.salary, s.league); // in local
+      const netEURm = (netK/1000) * FX[local];
+      s.money += netEURm; // EUR millions
+      log(`paid ${CUR[local]}${Math.round(netK)}k net (${moneyFmt(netEURm,'EUR')})`);
+      // contract countdown
+      s.contract.weeks -= 1; if(s.contract.weeks<=0){ log('contract expired'); s.contract=null; }
+    }
+
+    // bans and injuries countdown
+    if(s.ban){ s.ban.weeks -= 1; if(s.ban.weeks<=0){ log('ban lifted'); s.ban=null; } }
+    if(s.injury){ s.injury.weeks -= 1; for(const k in s.skills){ s.skills[k] = clamp(s.skills[k] - 1, 30, 99); } if(s.injury.weeks<=0){ log(`injury healed: ${s.injury.name}`); s.injury=null; } }
+
+    s.week += 1; if(s.week > SEASON_WEEKS){ seasonEnd(); s.week = 1; s.season += 1; s.age += 1; log(`new season. age now ${s.age}`); seasonStart(); }
+  }
+
+  function seasonStart(){ scheduleMatch(); generateRumors(); draw(); }
+
+  function seasonEnd(){
+    // awards basic based on player's form
+    const avg = s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
+    if(avg>=7.8) log(`award shortlists: ${pick(AWARDS)}`);
+    if(s.stats.goals>=20) log('Golden Boot contender');
+    // save season snapshot (include apps for retirement totals)
+    s.stats.seasons.push({season:s.season, age:s.age, apps:s.stats.apps, goals:s.stats.goals, ast:s.stats.ast, cs:s.stats.cs, avg:round(avg,2), value:marketValueEUR()});
+    // aging decline
+    if(s.age>26){ const baseDecline = s.age>=30? 2:1; const formDecline = avg<6.8? 2:0; for(const k in s.skills){ s.skills[k]=clamp(s.skills[k]-baseDecline-formDecline,30,99);} log(`aging decline applied`); }
+    // reset seasonal stats
+    s.stats.apps=0; s.stats.goals=0; s.stats.ast=0; s.stats.cs=0; s.stats.ratingSum=0;
+  }
+
+  // ====== FIXTURES / CUPS ======
+  function scheduleMatch(){
+    if(!s.club){ s.fixture=null; return; }
+    const roll = Math.random();
+    const isCup = roll<0.15; // small chance of cup match
+    const lg = s.league;
+    const opp = pick(lg.clubs);
+    s.fixture = {home:s.club.name, away:opp.n, strength:opp.lvl, cup: isCup? pick(['League Cup','National Cup','Europa']) : null};
+    log(`match scheduled: ${s.fixture.home} vs ${s.fixture.away}${isCup? ' • '+s.fixture.cup:''}`);
+  }
+
+  // ====== INJURIES & BANS ======
+  function randomInjury(){
+    const table = [
+      {name:'Bruised foot', min:1, max:2, prob:0.30},
+      {name:'Muscle strain', min:2, max:4, prob:0.24},
+      {name:'Sprained ankle', min:3, max:6, prob:0.18},
+      {name:'Ligament tear', min:8, max:16, prob:0.08},
+      {name:'Fracture', min:10, max:20, prob:0.05},
+      {name:'Career-ending', min:999, max:999, prob:0.01},
+      {name:'Concussion', min:1, max:3, prob:0.06}
+    ];
+    let r=Math.random(), acc=0; for(const it of table){ acc+=it.prob; if(r<=acc) return it; } return null;
+  }
+  function maybeInjure(context){ if(s.injury) return; const base=context==='match'?0.08:0.03; const physProtect=(s.skills.phys-50)/200; const chance=clamp(base-physProtect,0.01,0.12); if(Math.random()<chance){ const inj=randomInjury(); if(!inj)return; if(inj.name==='Career-ending'){ s.injury={name:inj.name,weeks:999}; log('career-ending injury! retire recommended'); } else { const w=Math.round(rnd(inj.min,inj.max)); s.injury={name:inj.name,weeks:w}; log(`injured: ${inj.name} (${w}w)`); } } }
+  function maybeBan(){ if(s.ban) return; const base=0.01; if(Math.random()<base){ const weeks=Math.round(rnd(2,8)); s.ban={name:'Doping ban',weeks}; log(`banned for doping (${weeks} weeks)`); } }
+
+  // ====== TRANSFERS / CONTRACTS ======
+  function salaryFor(level, lg){ const base=clamp((level-55)*1.5 + rnd(3,10),2,400); return Math.round(base*(lg?.salaryMult||1)); }
+  function generateOffers(n=4){ const out=[]; for(let i=0;i<n;i++){ const lg=pick(LEAGUES); const club=pick(lg.clubs); const base=s.ovr + s.fame*0.35 + lg.prestige*10 + (s.goat?5:0); const level=clamp(Math.round(base/1.7 + rnd(-8,8)),55,92); const salary=salaryFor(level,lg); const weeks = Math.round(rnd(52, 156)); const agentPct = 0.03 + Math.random()*0.02; const clauseM = round(marketValueEUR()* (1.1 + Math.random()*0.8),1); out.push({name:club.n, level, salary, league:lg, contract:{weeks,wageK:salary,agentPct,clauseM}}); } out.sort((a,b)=>b.level-a.level); return out; }
+  function renderOffers(){ offersEl.innerHTML=''; s.offers.forEach((o,idx)=>{ const el=document.createElement('div'); el.className='offer'; el.innerHTML=`<div><div><b>${o.name}</b> • level ${o.level}</div><div class="muted">${o.league.name} • wage ${o.salary}k/w • ${o.contract.weeks}w • agent ${Math.round(o.contract.agentPct*100)}% • clause ${moneyFmt(o.contract.clauseM,'EUR')}</div></div><div class="toolbar"><button class="accent" data-idx="${idx}">Sign</button></div>`; offersEl.appendChild(el); }); Array.from(offersEl.querySelectorAll('button[data-idx]')).forEach(btn=>{ btn.onclick=()=>{ const i = Number(btn.getAttribute('data-idx')); const o=s.offers[i]; if(s.contract && s.contract.weeks>0){ if(o.contract.clauseM < (s.contract.clauseM||9999)){ log('offer below release clause, blocked by contract'); return; } log('release clause met'); } s.club={name:o.name, level:o.level}; s.league=o.league; s.salary=o.salary; s.contract={...o.contract}; s.offers=[]; log(`signed for ${s.club.name} (${s.league.name}) • ${s.salary}k/w`); scheduleMatch(); draw(); }; }); }
+  function refreshOffers(){ s.offers = generateOffers(5); log('market refreshed'); renderOffers(); }
+  function trials(){ s.offers = generateOffers(4); log('trial offers arrived'); renderOffers(); nextWeek(); draw(); }
+  function openMarket(){ refreshOffers(); nextWeek(); draw(); }
+  function leaveClub(){ if(!s.club){ log('already free agent'); return; } if(s.contract && s.contract.weeks>0){ log('cannot leave: contract active'); return; } log(`left ${s.club.name}`); s.club=null; s.league=null; s.salary=0; s.fixture=null; s.contract=null; draw(); }
+  function askRaise(){
+    if(!s.club||!s.contract){ log('no club to ask raise'); return; }
+
+    // cooldown: can only ask every 2 seasons (accepted or denied)
+    if(s.raiseCooldownUntilSeason && s.season < s.raiseCooldownUntilSeason){
+      log(`cannot ask for a raise until Season ${s.raiseCooldownUntilSeason}`);
+      return;
+    }
+
+    const avg = s.stats.apps ? s.stats.ratingSum/s.stats.apps : 6.0;
+
+    // tougher chance: scaled down and capped lower
+    let chance = 0.6 * (0.2 + (avg-6)*0.15 + (s.fame/200));
+    chance = clamp(chance, 0.03, 0.45);
+
+    if(Math.random() < chance){
+      const bump = Math.round(rnd(4,10)); // slightly smaller bump
+      s.salary += bump;
+      log(`raise accepted +${bump}k/w (next request available Season ${s.season+2})`);
+    } else {
+      log(`raise denied (next request available Season ${s.season+2})`);
+      s.morale = clamp(s.morale - 3, 0, 100);
+    }
+
+    s.raiseCooldownUntilSeason = s.season + 2;
+    draw();
+  }
+
+  // ====== MATCH ENGINE ======
+  function playMatch(){ if(!s.fixture || s.injury || s.ban) return; const opp=s.fixture.strength; const fatigue=clamp(1-(s.energy/140),0.6,1.0); const moraleBoost=1+(s.morale-50)/200; const posBias=s.pos==='ST'?1.08:s.pos==='CAM'?1.05:s.pos==='CM'?1.0:s.pos==='CB'?0.95:s.pos==='GK'?0.9:1.0; const perfBase=s.ovr*moraleBoost*posBias*(1-(1-fatigue)*0.5); const variance=rnd(-8,8); const performance=clamp(perfBase+variance,30,99); const teamStrength=(s.club? s.club.level:60)+(performance-60)*0.2; const oppStrength=opp; const goalChance=clamp((teamStrength-oppStrength+10)/40,0.08,0.65); const concedeChance=clamp((oppStrength-teamStrength+10)/40,0.08,0.65); const goalsFor=Math.max(0,Math.round(rnd(0,3)+(Math.random()<goalChance?1:0))); const goalsAgainst=Math.max(0,Math.round(rnd(0,3)+(Math.random()<concedeChance?1:0)));
+    let goals=0,ast=0,cs=0; if(['ST','CAM','CM'].includes(s.pos)){ for(let i=0;i<goalsFor;i++) if(Math.random()<(0.35+(performance-60)/150)) goals++; for(let i=0;i<goalsFor-goals;i++) if(Math.random()<0.4) ast++; } else if(['CB','GK'].includes(s.pos)) { cs = goalsAgainst===0?1:0; }
+    const rating = clamp(Math.round(6 + (performance-60)/10 + goals*0.6 + ast*0.4 + cs*0.5 + rnd(-0.5,0.5)),4,10);
+    s.stats.apps++; s.stats.goals+=goals; s.stats.ast+=ast; s.stats.cs+=cs; s.stats.ratingSum+=rating;
+    s.energy = clamp(s.energy - Math.round(rnd(12,20)),0,100); s.morale = clamp(s.morale + (rating>=7?2:-1),0,100); s.fame = clamp(s.fame + (rating>=8?3:2) + goals + (s.goat?1:0), 0, 999);
+    log(`match ${s.fixture.home} ${goalsFor}-${goalsAgainst} ${s.fixture.away} • rating ${rating} • g ${goals} a ${ast}${cs?` • clean sheet`:''}`);
+    const xp=Math.round(performance/10 + rating + goals*2 + ast*1.5 + cs*1.5); const targets = s.pos==='GK'? ['gk','pass','phys'] : ['shoot','pass','pace','def','phys']; for(let i=0;i<2;i++){ const t=targets[Math.floor(Math.random()*targets.length)]; s.skills[t]=clamp(s.skills[t] + Math.max(1,Math.round(xp/20)),30,99); }
+    maybeInjure('match'); maybeBan(); s.fixture=null; nextWeek(); scheduleMatch(); draw(); }
+
+  // ====== SKIP SEASON ======
+  function skipSeason(){ let guard=300; while(s.week<=SEASON_WEEKS && guard-- > 0){ if(s.club && !s.fixture) scheduleMatch(); if(s.injury||s.ban){ rest(); continue; } if(s.fixture) playMatch(); else { if(!s.club){ trials(); } else { rest(); } } if(s.week===1) break; } log('season skipped'); draw(); }
+
+  // ====== RUMORS ======
+  function playerName(){ const f=['Leo','Cristian','Ney','Kyl','Erli','Buka','Luka','Kevin','Jude','Erik','Marco','Rafa']; const l=['Silva','Garcia','Lopez','Khan','Kim','Nakamura','Tavares','Hansen','Johansson','Benz','Rossi','Müller']; return pick(f)+' '+pick(l); }
+  function generateRumors(){ const list=[]; for(let i=0;i<5;i++){ const from=pick(LEAGUES); const to=pick(LEAGUES); const price=round(rnd(5,120),1); const age=Math.round(rnd(17,34)); list.push(`${playerName()} (${age}) from ${pick(from.clubs).n} to ${pick(to.clubs).n} for ${moneyFmt(price,'EUR')}`); } s.rumors=list; renderRumors(); }
+  function renderRumors(){ rumorsEl.innerHTML=''; s.rumors.forEach(r=>{ const d=document.createElement('div'); d.className='rumor'; d.textContent=r; rumorsEl.appendChild(d); }); }
+
+  // ====== ECONOMY / PURCHASES ======
+  function buyHouse(){ const cost=1.0; if(s.assets.house){ log('you already have a house'); return; } if(s.money<cost){ log('not enough balance for house'); return; } s.money-=cost; s.assets.house=true; log('bought a house'); draw(); }
+  function buyCar(){ const cost=0.1; if(s.assets.car){ log('you already have a car'); return; } if(s.money<cost){ log('not enough balance for car'); return; } s.money-=cost; s.assets.car=true; log('bought a car'); draw(); }
+
+  // ====== RETIREMENT ======
+  function retire(){
+    const sea = s.stats.seasons;
+    const sum = (arr,key)=>arr.reduce((a,x)=>a + (x[key]||0),0);
+    const totalApps = sum(sea,'apps') + (s.stats.apps||0);
+    const totalGoals = sum(sea,'goals') + (s.stats.goals||0);
+    const totalAst = sum(sea,'ast') + (s.stats.ast||0);
+    const totalCs = sum(sea,'cs') + (s.stats.cs||0);
+    const avg = s.stats.apps? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00';
+    const bestVal = s.valueHistory.length ? Math.max(...s.valueHistory.map(v=>v.value)) : marketValueEUR();
+
+    retireSummary.innerHTML = `
+      <div><b>${s.name}</b> • ${s.pos} • ${s.origin}</div>
+      <div>Seasons: ${s.season-1} • Clubs played: ${s.stats.seasons.length}+</div>
+      <div>Totals: apps ${totalApps}, goals ${totalGoals}, assists ${totalAst}, clean sheets ${totalCs}</div>
+      <div>Best value: ${moneyFmt(bestVal,'EUR')}</div>
+      <div>Final balance: ${moneyFmt(s.money)}</div>
+    `;
+    // value graph svg
+    const points = s.valueHistory.map((v,i)=>({x:i, y:v.value}));
+    const w=680,h=180; const pad=20; const maxY=Math.max(10,...points.map(p=>p.y)); const minY=0; const sx=(i)=>pad + i*( (w-2*pad)/Math.max(1,points.length-1) ); const sy=(y)=>h-pad - ( (y-minY)/(maxY-minY||1) )*(h-2*pad);
+    let d=''; points.forEach((p,i)=>{ d+= (i? 'L':'M')+sx(p.x)+','+sy(p.y)+' '; });
+    retireGraph.innerHTML = `<svg viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="#22c55e" stroke-width="2" /></svg>`;
+    retireModal.classList.remove('hidden');
+  }
+
+  // ====== ACTIONS ======
+  function train(){ if(s.injury||s.ban){ log('cannot train while injured/banned'); nextWeek(); draw(); return; } const gain=Math.round(rnd(1,3)); const target=s.pos==='GK'? 'gk' : ['shoot','pass','pace','def','phys'][Math.floor(Math.random()*5)]; s.skills[target]=clamp(s.skills[target]+gain,30,99); s.energy=clamp(s.energy-Math.round(rnd(5,10)),0,100); s.morale=clamp(s.morale+Math.round(rnd(0,2)),0,100); maybeInjure('train'); log(`trained ${target} +${gain}`); nextWeek(); if(s.club&&!s.fixture) scheduleMatch(); draw(); }
+  function rest(){ const en=Math.round(rnd(12,20)); s.energy=clamp(s.energy+en,0,100); s.morale=clamp(s.morale+Math.round(rnd(1,4)),0,100); log(`rest day +${en} energy`); nextWeek(); if(s.club&&!s.fixture) scheduleMatch(); draw(); }
+  function social(){ const fameGain=Math.round(rnd(3,9)); s.fame=clamp(s.fame+fameGain+(s.goat?1:0),0,999); s.morale=clamp(s.morale+Math.round(rnd(1,4)),0,100); s.energy=clamp(s.energy-Math.round(rnd(2,6)),0,100); log(`social media +${fameGain} fame`); nextWeek(); if(s.club&&!s.fixture) scheduleMatch(); draw(); }
+
+  // ====== SAVE/LOAD ======
   function save(slot){ localStorage.setItem('fcareer_'+slot, JSON.stringify(s)); log('saved to '+slot); }
-  function load(slot){ const raw = localStorage.getItem('fcareer_'+slot); if(!raw){ log('no save in '+slot); return; } Object.assign(s, JSON.parse(raw)); log('loaded '+slot); draw(); }
+  function load(slot){ const raw=localStorage.getItem('fcareer_'+slot); if(!raw){ log('no save in '+slot); return; } Object.assign(s, JSON.parse(raw)); log('loaded '+slot); draw(); }
   function clear(){ ['A','B'].forEach(k=>localStorage.removeItem('fcareer_'+k)); log('saves cleared'); }
 
-  // ====== INIT / EVENTS ======
-  startBtn.onclick = ()=>{
-    s.name = nameIn.value.trim() || 'Rookie';
-    s.pos = posIn.value;
-    s.age = parseInt(ageIn.value,10) || 20;
-    const diff = diffIn.value;
-    if(diff==='easy'){ s.skills = {shoot:60, pass:60, pace:60, def:58, phys:60, gk:s.pos==='GK'?60:40}; s.energy=85; s.morale=75; s.fame=10; }
-    if(diff==='hard'){ s.skills = {shoot:50, pass:50, pace:50, def:50, phys:50, gk:s.pos==='GK'?50:40}; s.energy=70; s.morale=60; }
-    updateOVR();
-    screenStart.classList.add('hidden');
-    screenGame.classList.remove('hidden');
-    log(`career started for ${s.name} • ${s.pos} • age ${s.age}`);
-    draw();
-  };
+  // ====== EVENTS ======
+  startBtn.onclick=()=>{ s.name=nameIn.value.trim()||'Rookie'; s.pos=posIn.value; s.age=parseInt(ageIn.value,10)||20; s.origin=originIn.value; s.currency=currencyIn.value; s.goat=goatIn.checked; const diff=diffIn.value; if(diff==='easy'){ s.skills={shoot:60,pass:60,pace:60,def:58,phys:60,gk:s.pos==='GK'?60:40}; s.energy=85; s.morale=75; s.fame=12; } if(diff==='hard'){ s.skills={shoot:50,pass:50,pace:50,def:50,phys:50,gk:s.pos==='GK'?50:40}; s.energy=70; s.morale=60; } updateOVR(); screenStart.classList.add('hidden'); screenGame.classList.remove('hidden'); log(`career started for ${s.name} • ${s.pos} • age ${s.age} • ${s.origin}`); scheduleMatch(); generateRumors(); draw(); };
 
-  btnTrain.onclick = ()=>{ train(); };
-  btnRest.onclick = ()=>{ rest(); };
-  btnSocial.onclick = ()=>{ social(); };
-  btnFind.onclick = ()=>{ trials(); };
-  btnOpenMarket.onclick = ()=>{ openMarket(); };
-  btnPlay.onclick = ()=>{ playMatch(); };
-  btnSkipSeason.onclick = ()=>{ skipSeason(); };
+  btnTrain.onclick=()=>train(); btnRest.onclick=()=>rest(); btnSocial.onclick=()=>social(); btnFind.onclick=()=>trials(); btnOpenMarket.onclick=()=>openMarket(); btnAskRaise.onclick=()=>askRaise(); btnPlay.onclick=()=>playMatch(); btnSkipSeason.onclick=()=>skipSeason(); btnRetire.onclick=()=>retire(); btnRumors.onclick=()=>{generateRumors(); log('rumors updated');};
 
-  btnRefreshOffers.onclick = ()=>{ refreshOffers(); };
-  btnLeave.onclick = ()=>{ leaveClub(); };
+  btnRefreshOffers.onclick=()=>refreshOffers(); btnLeave.onclick=()=>leaveClub();
 
-  saveABtn.onclick = ()=>{ save('A'); };
-  loadABtn.onclick = ()=>{ load('A'); };
-  saveBBtn.onclick = ()=>{ save('B'); };
-  loadBBtn.onclick = ()=>{ load('B'); };
-  clearBtn.onclick = ()=>{ clear(); };
+  saveABtn.onclick=()=>save('A'); loadABtn.onclick=()=>load('A'); saveBBtn.onclick=()=>save('B'); loadBBtn.onclick=()=>load('B'); clearBtn.onclick=()=>clear();
+
+  btnBuyHouse.onclick=()=>buyHouse(); btnBuyCar.onclick=()=>buyCar();
+
+  closeRetire.onclick=()=>retireModal.classList.add('hidden');
 })();
 </script>
 </body>
