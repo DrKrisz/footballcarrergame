@@ -3,61 +3,78 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Football Career Simulator — Mobile Responsive v1</title>
+<title>Football Career Simulator — Readable Mobile v1</title>
 <style>
   :root{
-    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444; --good:#10b981;
+    --bg:#0f172a; --card:#111827; --surface:#1f2937; --ink:#e5eef9; --muted:#9fb3c8; --soft:#334155; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444; --good:#10b981; --gap:20px; --rad:18px;
   }
   html,body{height:100%}
-  body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif; display:flex; justify-content:center; align-items:flex-start; padding:10px; box-sizing:border-box}
-  .app{width:100%; max-width:1200px; background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px; box-sizing:border-box}
-  .row{display:flex; gap:22px; flex-wrap:wrap}
-  .col{flex:1 1 320px; min-width:260px}
-  .card{background:#334155; border-radius:18px; padding:14px; box-sizing:border-box; margin-bottom:18px}
-  h1{font-size:22px; margin:4px 0 10px}
-  h2{font-size:16px; margin:0 0 8px}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif; display:flex; justify-content:center; align-items:flex-start; padding:12px; box-sizing:border-box; line-height:1.5;}
+  .app{width:100%; max-width:1160px; background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:18px; box-sizing:border-box}
+
+  /* Layout */
+  .row{display:flex; gap:var(--gap); flex-wrap:wrap}
+  .col{flex:1 1 340px; min-width:280px}
+  .card{background:var(--surface); border-radius:var(--rad); padding:14px; box-sizing:border-box; margin-bottom:18px; border:1px solid #263244}
+  .card.compact{padding:10px}
+  .section{display:flex; align-items:center; justify-content:space-between}
+  h1{font-size:24px; margin:0 0 6px}
+  h2{font-size:16px; margin:0 0 8px; letter-spacing:.2px}
+  p,li{color:var(--muted)}
   .muted{color:var(--muted)}
-  .toolbar{display:flex; gap:8px; flex-wrap:wrap}
-  button{flex:1 1 auto; appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; background:#0f172a; color:#f8fafc; transition:transform .04s ease,opacity .2s; min-width:92px}
+
+  /* Controls */
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap}
+  button{flex:1 1 auto; appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; background:#0b1320; color:#f8fafc; transition:transform .04s ease,opacity .2s; min-width:92px}
   button:active{transform:translateY(1px)}
-  button[disabled]{opacity:.5; cursor:not-allowed}
+  button[disabled]{opacity:.55; cursor:not-allowed}
   .accent{background:var(--accent); color:#0b1320}
   .alt{background:var(--accent-2)}
   .warn{background:var(--warn)}
   .danger{background:var(--danger)}
   .good{background:var(--good)}
-  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:12px}
-  .stat{background:#1e293b; border-radius:12px; padding:10px; text-align:center; color:var(--ink)}
+
+  /* Stats Grid */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:12px}
+  .stat{background:#0f172a; border:1px solid #223044; border-radius:12px; padding:10px; text-align:center}
   .big{font-size:22px; font-weight:800}
-  .list{max-height:280px; overflow:auto}
-  .pill{display:inline-block; background:#475569; color:#f8fafc; border-radius:999px; padding:6px 10px; font-size:12px; margin:2px 6px 2px 0}
-  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; max-height:240px; overflow:auto; background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px; box-sizing:border-box}
-  input,select{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #475569; background:#1e293b; color:#f1f5f9; box-sizing:border-box}
-  .hidden{display:none}
-  .divider{height:1px; background:#475569; margin:10px 0}
-  .offer{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#1e293b; border-radius:12px; padding:10px; margin-bottom:8px}
-  .chips{display:flex; gap:6px; flex-wrap:wrap}
+
+  /* Chips/HUD */
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .pill{display:inline-flex; align-items:center; gap:6px; background:#0f172a; border:1px solid #223044; color:var(--ink); border-radius:999px; padding:6px 10px; font-size:12px}
   .money{font-weight:800}
-  .flex{display:flex; gap:10px; align-items:center}
-  .rumor{padding:6px 10px; background:#1e293b; border-radius:10px; margin-bottom:6px}
+
+  /* Lists */
+  .list{max-height:280px; overflow:auto}
+  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; max-height:240px; overflow:auto; background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px; border:1px solid #223044}
+  .offer{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0f172a; border:1px solid #223044; border-radius:12px; padding:10px; margin-bottom:8px}
+  .rumor{padding:6px 10px; background:#0f172a; border:1px solid #223044; border-radius:10px; margin-bottom:6px}
+
+  /* Details (progressive disclosure) */
+  details.card > summary{font-weight:700; cursor:pointer; outline:none}
+  details.card > summary::-webkit-details-marker{display:none}
+  details.card > summary{display:flex; align-items:center; justify-content:space-between}
+  details.card[open]{box-shadow:0 0 0 1px #223044 inset}
+
+  /* Modal */
   .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px}
   .modal.show{display:flex}
   .modal .panel{background:#0f172a; border:2px solid #475569; border-radius:16px; padding:16px; width:100%; max-width:760px; max-height:85vh; overflow:auto}
   svg{max-width:100%}
 
-  /* Mobile tweaks */
+  /* Mobile */
   @media (max-width:820px){
     .app{padding:14px}
-    .row{flex-direction:column; gap:18px}
+    .row{flex-direction:column; gap:16px}
     .col{min-width:100%}
-    h1{font-size:18px}
+    h1{font-size:20px}
     h2{font-size:15px}
-    button{font-size:14px; padding:9px 10px; min-width:0}
+    button{font-size:14px; padding:10px 12px; min-width:0}
     .big{font-size:18px}
-    .grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
     .list{max-height:220px}
     .log{max-height:200px}
-    /* completely hide rumors card on mobile */
+    /* Hide rumors completely on mobile */
     #rumorsPanel{display:none !important}
   }
 </style>
@@ -67,7 +84,7 @@
     <!-- START SCREEN -->
     <div id="screen-start">
       <h1>Football Career Simulator — v1</h1>
-      <p class="muted">Dark, mobile-first, single file. Real leagues & salaries, contracts, taxes, raises (cooldown), injuries/bans, cups, rumors, economy, skip season & retirement.</p>
+      <p class="muted">Clean design and progressive disclosure so it’s easier to read on first play. You can always expand advanced panels later.</p>
       <div class="row">
         <div class="col card">
           <h2>player setup</h2>
@@ -108,31 +125,28 @@
               <option value="hard">hard</option>
             </select>
           </label><br><br>
-          <label class="flex">currency
-            <select id="currency">
+          <label class="section" style="gap:8px">currency
+            <select id="currency" style="flex:0 0 160px">
               <option value="EUR">€ Euro</option>
               <option value="GBP">£ Pound</option>
               <option value="USD">$ Dollar</option>
             </select>
-            <span class="muted">(leagues pay local; UI converts)</span>
+            <span class="muted" style="font-size:12px">leagues pay local; UI converts</span>
           </label>
-          <label class="flex" style="margin-top:8px"><input id="goat" type="checkbox"> <span>G.O.A.T. mode (lucky boosts)</span></label>
+          <label class="section" style="gap:8px; margin-top:8px"><span><input id="goat" type="checkbox"> G.O.A.T. mode (lucky boosts)</span></label>
           <div class="divider"></div>
           <div class="toolbar">
             <button class="accent" id="startBtn">Start career</button>
           </div>
         </div>
-        <div class="col card">
-          <h2>what's inside</h2>
+        <div class="col card compact">
+          <h2>what you'll see</h2>
           <ul>
-            <li>Top-5 + MLS + Saudi + J-League (10 clubs each)</li>
-            <li>Contracts (weeks, agent %, clause), taxes & net income</li>
-            <li>Transfers, trials, rumors, raise w/ cooldown</li>
-            <li>Injuries & doping bans; decline after prime</li>
-            <li>Cup chance per week; end-season awards</li>
-            <li>Economy: balance, buy house/car</li>
-            <li>Skip season & retirement summary graph</li>
+            <li>Left: your club & core stats (HUD)</li>
+            <li>Middle: weekly actions + log</li>
+            <li>Right: transfers, career & economy</li>
           </ul>
+          <p class="muted">Rumors are hidden on mobile to reduce clutter. Open on desktop via the panel.</p>
         </div>
       </div>
     </div>
@@ -140,6 +154,7 @@
     <!-- GAME SCREEN -->
     <div id="screen-game" class="hidden">
       <div class="row">
+        <!-- HUD / Overview -->
         <div class="col">
           <div class="card">
             <h1 id="clubName">Free Agent</h1>
@@ -172,10 +187,11 @@
             </div>
           </div>
         </div>
+
+        <!-- Actions + Log (primary focus) -->
         <div class="col">
           <div class="card">
-            <h2>this week</h2>
-            <div id="fixture" class="muted">no club, request trials or open market</div>
+            <div class="section"><h2>this week</h2><span class="muted" id="fixture">no club, request trials or open market</span></div>
             <div class="toolbar" style="margin-top:8px">
               <button id="btnTrain" class="alt">Train</button>
               <button id="btnRest">Rest</button>
@@ -188,15 +204,22 @@
               <button id="btnRetire" class="danger">Retire</button>
             </div>
           </div>
+
           <div class="card">
-            <div class="section-title" style="display:flex; align-items:center; justify-content:space-between"><h2>log</h2><button id="btnRumors" class="alt">New rumors</button></div>
+            <div class="section"><h2>log</h2><button id="btnRumors" class="alt">New rumors</button></div>
             <div id="log" class="log"></div>
           </div>
-          <div class="card" id="rumorsPanel">
-            <h2>rumors</h2>
-            <div id="rumors" class="list"></div>
-          </div>
+
+          <details class="card" id="rumorsPanel">
+            <summary>
+              <span>rumors</span>
+              <span class="muted" style="font-size:12px">(optional)</span>
+            </summary>
+            <div id="rumors" class="list" style="margin-top:8px"></div>
+          </details>
         </div>
+
+        <!-- Transfers / Career / Economy -->
         <div class="col">
           <div class="card">
             <h2>transfers & contract</h2>
@@ -207,9 +230,10 @@
               <button id="btnLeave" class="danger">Leave club</button>
             </div>
           </div>
-          <div class="card">
-            <h2>career & economy</h2>
-            <div id="career" class="list"></div>
+
+          <details class="card" open>
+            <summary>career & economy</summary>
+            <div id="career" class="list" style="margin-top:8px"></div>
             <div class="divider"></div>
             <div class="toolbar">
               <button id="saveABtn" class="alt">Save A</button>
@@ -224,7 +248,7 @@
               <button id="btnBuyCar" class="good">Buy car (€0.1m)</button>
             </div>
             <div id="assets" class="muted" style="margin-top:8px"></div>
-          </div>
+          </details>
         </div>
       </div>
 
