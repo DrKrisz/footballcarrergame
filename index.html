@@ -6,43 +6,47 @@
 <title>Football Career Simulator — v1 Big File (Dark)</title>
 <style>
   :root{
-    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444; --good:#10b981;
+    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
   }
   html,body{height:100%}
-  body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif; display:grid; place-items:center}
-  .app{width:min(1250px,96vw); background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif; display:flex; justify-content:center; align-items:flex-start; padding:10px; box-sizing:border-box}
+  .app{width:100%; max-width:980px; background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px; box-sizing:border-box}
   .row{display:flex; gap:16px; flex-wrap:wrap}
-  .col{flex:1 1 320px}
-  .card{background:#334155; border-radius:18px; padding:14px}
+  .col{flex:1 1 260px; min-width:240px}
+  .card{background:#334155; border-radius:18px; padding:14px; box-sizing:border-box}
   h1{font-size:22px; margin:4px 0 10px}
   h2{font-size:16px; margin:0 0 8px}
   .muted{color:var(--muted)}
   .toolbar{display:flex; gap:8px; flex-wrap:wrap}
-  button{appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; background:#0f172a; color:#f8fafc; transition:transform .04s ease,opacity .2s}
+  button{flex:1 1 auto; appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; background:#0f172a; color:#f8fafc; transition:transform .04s ease,opacity .2s; min-width:80px}
   button:active{transform:translateY(1px)}
   button[disabled]{opacity:.5; cursor:not-allowed}
   .accent{background:var(--accent); color:#0b1320}
   .alt{background:var(--accent-2)}
   .warn{background:var(--warn)}
   .danger{background:var(--danger)}
-  .good{background:var(--good)}
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px}
   .stat{background:#1e293b; border-radius:12px; padding:10px; text-align:center; color:var(--ink)}
   .big{font-size:22px; font-weight:800}
   .list{max-height:260px; overflow:auto}
-  .pill{display:inline-block; background:#475569; color:var(--ink); border-radius:999px; padding:4px 10px; font-size:12px; margin-right:6px}
-  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; max-height:260px; overflow:auto; background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px}
-  input,select{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #475569; background:#1e293b; color:var(--ink)}
+  .pill{display:inline-block; background:#475569; color:var(--ink); border-radius:999px; padding:4px 10px; font-size:12px; margin:2px 4px 2px 0}
+  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; max-height:220px; overflow:auto; background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px; box-sizing:border-box}
+  input,select{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #475569; background:#1e293b; color:var(--ink); box-sizing:border-box}
   .hidden{display:none}
   .divider{height:1px; background:#475569; margin:10px 0}
-  .offer{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#1e293b; border-radius:12px; padding:10px; margin-bottom:8px}
-  .chips{display:flex; gap:6px; flex-wrap:wrap}
-  .money{font-weight:800}
-  .flex{display:flex; gap:10px; align-items:center}
-  .w100{width:100%}
-  .section-title{display:flex; align-items:center; justify-content:space-between}
-  .rumor{padding:6px 10px; background:#1e293b; border-radius:10px; margin-bottom:6px}
-  svg{max-width:100%}
+  .season{font-weight:800}
+  .center{display:flex; align-items:center; justify-content:center}
+  @media (max-width:768px){
+    .row{flex-direction:column}
+    .col{min-width:100%}
+    h1{font-size:18px}
+    h2{font-size:14px}
+    button{font-size:14px; padding:8px 10px}
+    .big{font-size:18px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr));}
+    .list{max-height:180px}
+    .log{max-height:160px}
+  }
 </style>
 </head>
 <body>
