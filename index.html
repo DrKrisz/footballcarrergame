@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Football Career Simulator — v1.2</title>
+<title>Football Career Simulator — v1.2.1</title>
 <style>
   :root{
     --bg:#0d1117; --card:#161b22; --surface:#1f2630; --ink:#e6edf3; --muted:#8b949e;
@@ -52,10 +52,22 @@
   .rumor{padding:6px 10px; background:#0f172a; border:1px solid var(--border); border-radius:10px; margin-bottom:6px}
   details.card>summary{font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between}
   details.card[open]{box-shadow:0 0 0 1px var(--border) inset}
+
+  /* Modal */
   .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px}
   .modal.show{display:flex}
-  .modal .panel{background:#0f172a; border:2px solid var(--border); border-radius:16px; padding:16px; width:100%; max-width:760px; max-height:85vh; overflow:auto}
+  .modal .panel{
+    position:relative;
+    background:#0f172a; border:2px solid var(--border); border-radius:16px;
+    padding:16px; width:100%; max-width:760px; max-height:85vh; overflow:auto
+  }
+  .close-x{
+    position:absolute; top:8px; right:10px; width:28px; height:28px; border-radius:999px;
+    background:#1b2233; color:#e6edf3; border:1px solid var(--border); cursor:pointer; font-weight:900; line-height:1;
+  }
+
   svg{max-width:100%}
+
   @media (min-width:1200px){ .row.main{display:grid; grid-template-columns:1.1fr 1fr 1fr; gap:var(--gap); align-items:start}
                                .col{min-width:0} .app{max-width:1320px}}
   @media (min-width:1600px){ .app{max-width:1400px} }
@@ -136,13 +148,14 @@
 
         <div class="divider"></div>
         <h3>Game Version</h3>
-        <p><b>v1.2</b></p>
+        <p><b>v1.2.1</b></p>
 
         <h3>New updates</h3>
         <ul>
-          <li><b>v1.2</b> — <i>Rival offers</i> under your current contract (2 clubs). Highlights show better wage/term/agent/clause; sign only if clause met.</li>
-          <li><b>v1.1</b> — Season-only contracts; fixed extension bug when contract expired during popup.</li>
-          <li><b>v1.0</b> — Contracts system, extensions, saves, houses, injuries/bans, skip season.</li>
+          <li><b>v1.2.1</b> — Fixed rare “stuck extension popup” (force close, safe expiry, skip-season suppression).</li>
+          <li><b>v1.2</b> — Rival offers under your current deal with highlights; clause gate.</li>
+          <li><b>v1.1</b> — Season-only contracts; extension popup restore on accept.</li>
+          <li><b>v1.0</b> — Base contracts, saves, houses, injuries/bans, skip season.</li>
         </ul>
       </div>
     </div>
@@ -224,7 +237,7 @@
 
           <div id="offers" class="list" style="margin-top:8px"></div>
 
-          <!-- Rival offers block -->
+          <!-- Rival offers -->
           <div id="rivalsWrap" class="hidden" style="margin-top:10px">
             <div class="divider"></div>
             <h3>Rival offers</h3>
@@ -262,16 +275,17 @@
     <!-- Retirement modal -->
     <div id="retireModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="retireTitle">
       <div class="panel">
+        <button id="closeRetire" class="close-x" title="Close">×</button>
         <h2 id="retireTitle">Career summary</h2>
         <div id="retireSummary"></div>
         <div id="retireGraph" style="margin-top:10px"></div>
-        <div class="toolbar" style="margin-top:10px"><button id="closeRetire" class="alt">Close</button></div>
       </div>
     </div>
 
     <!-- Extension modal -->
     <div id="extendModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="extendTitle">
       <div class="panel">
+        <button id="forceCloseExtend" class="close-x" title="Force close">×</button>
         <h2 id="extendTitle">Contract extension offer</h2>
         <div id="extendDetails" class="muted" style="margin-bottom:10px"></div>
         <div class="toolbar">
@@ -313,7 +327,8 @@
     stats:{apps:0,goals:0,ast:0,cs:0,ratingSum:0,seasons:[]},
     offers:[],rumors:[],valueHistory:[],_vhStamp:null,raiseCooldownUntilSeason:null,
     pendingExtension:null,   // {weeks,wageK,agentPct,clauseM,club,league}
-    rivalOffers:[]           // list of 2 rival offers while under contract
+    rivalOffers:[],
+    suppressPopups:false
   };
 
   // utils
@@ -321,11 +336,10 @@
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const round=(v,d=0)=>{const m=Math.pow(10,d);return Math.round(v*m)/m};
   const pick=a=>a[Math.floor(Math.random()*a.length)];
-  const moneyFmt=(m,cur=s.currency)=>`${{EUR:'€',GBP:'£',USD:'$'}[cur]}${round((cur==='GBP'||cur==='USD')? m/{EUR:1,GBP:1.17,USD:0.92}[cur] : m,2)}m`;
   const kToWeeklyNet=(k,lg)=>k*(1-(s.contract?s.contract.agentPct:0.03))*(1-(lg?.tax??0.4));
   const $=id=>document.getElementById(id);
 
-  // DOM refs
+  // refs
   const screenStart=$('screen-start'), screenGame=$('screen-game');
   const clubName=$('clubName'), seasonPill=$('seasonPill'), weekPill=$('weekPill'), agePill=$('agePill'), posPill=$('posPill'),
         leaguePill=$('leaguePill'), salaryPill=$('salaryPill'), famePill=$('famePill'), valuePill=$('valuePill'),
@@ -334,11 +348,11 @@
   const fixtureEl=$('fixture'), logEl=$('log'), rumorsEl=$('rumors');
   const contractBox=$('contractBox'), offersEl=$('offers'), careerEl=$('career'), assetsEl=$('assets');
   const rivalsWrap=$('rivalsWrap'), rivalOffersEl=$('rivalOffers');
+  const extendModal=$('extendModal');
 
-  // logging
   function log(t){const time=`S${s.season}W${s.week}`; logEl.textContent=`${time} • ${t}\n`+logEl.textContent;}
 
-  // ovr & value
+  // OVR/value
   function updateOVR(){
     const w={ST:{shoot:3,pass:2,pace:3,def:1,phys:2,gk:0.5},CAM:{shoot:2,pass:3,pace:2,def:1,phys:2,gk:0.5},
              CM:{shoot:2,pass:2,pace:2,def:2,phys:2,gk:0.5},CB:{shoot:1,pass:1.5,pace:2,def:3,phys:3,gk:0.5},
@@ -354,7 +368,7 @@
     return round(base*pm*af*ff*lf,1);
   }
 
-  // contract terms
+  // contract years
   function preferredMaxYearsByAge(age){ if(age<=22) return 5; if(age<=27) return 4; if(age<=31) return 3; return 2; }
   function chooseYears(age,cap){
     const pref=Math.min(preferredMaxYearsByAge(age), cap);
@@ -365,19 +379,15 @@
   }
   const yearsToWeeks=(y)=>y*SEASON_WEEKS;
 
-  // draw
+  // draw helpers
   function draw(){
     updateOVR();
     clubName.textContent=s.club? s.club.name : 'Free Agent';
-    seasonPill.textContent=`Season ${s.season}`;
-    weekPill.textContent=`Week ${s.week}/${SEASON_WEEKS}`;
-    agePill.textContent=`Age ${s.age}`;
-    posPill.textContent=s.pos;
+    seasonPill.textContent=`Season ${s.season}`; weekPill.textContent=`Week ${s.week}/${SEASON_WEEKS}`;
+    agePill.textContent=`Age ${s.age}`; posPill.textContent=s.pos;
     leaguePill.textContent=`League: ${s.league? s.league.name : 'None'}`;
-    salaryPill.textContent=`Salary ${s.salary}k/w`;
-    famePill.textContent=`Fame ${s.fame}`;
-    const val=marketValueEUR();
-    valuePill.textContent=`Value €${val.toFixed(1)}m`;
+    salaryPill.textContent=`Salary ${s.salary}k/w`; famePill.textContent=`Fame ${s.fame}`;
+    const val=marketValueEUR(); valuePill.textContent=`Value €${val.toFixed(1)}m`;
     const stamp=`${s.season}-${s.week}`; if(s._vhStamp!==stamp){ s.valueHistory.push({season:s.season,week:s.week,age:s.age,value:val}); s._vhStamp=stamp; }
     injuryPill.textContent=s.injury? `Injured: ${s.injury.name} (${s.injury.weeks}w)` : 'Healthy';
     injuryPill.style.background=s.injury?'#3a0b0b':'#0b2f1a';
@@ -405,7 +415,7 @@
   }
   function renderAssets(){ const stars='★'.repeat(s.assets.house) + (s.assets.house?'':'—'); assetsEl.textContent=`assets: ${s.assets.house? stars+' house':'—'}${s.assets.car?' • 🚗 car':''}`; }
 
-  // salary & offers
+  // salaries/offers
   function salaryFor(level,lg){ const base=clamp((level-55)*1.5 + rnd(3,10),2,400); return Math.round(base*(lg?.salaryMult||1)); }
   function generateOffers(n=4){
     const out=[];
@@ -423,37 +433,33 @@
     out.sort((a,b)=>b.level-a.level); return out;
   }
 
-  // Rival offers (while under contract)
+  // rival offers
   function generateRivalOffers(){
     if(!s.club || !s.contract) { s.rivalOffers=[]; return; }
     const list=[];
     for(let i=0;i<2;i++){
       const lg=pick(LEAGUES), club=pick(lg.clubs);
       const level=clamp(Math.round(s.ovr + lg.prestige*8 + rnd(-6,10)),55,94);
-      const salary=Math.max(s.salary+1, salaryFor(level,lg)); // nudge at least > current often
+      const salary=Math.max(s.salary+1, salaryFor(level,lg));
       const years=chooseYears(s.age, s.maxSeasons);
       const weeks=yearsToWeeks(years);
-      const agentPct=Math.max(0.02,(s.contract.agentPct - rnd(0.0,0.01))); // maybe slightly better
+      const agentPct=Math.max(0.02,(s.contract.agentPct - rnd(0.0,0.01)));
       const clauseM=round(marketValueEUR()*(1.0+rnd(0.6,1.2)),1);
       list.push({name:club.n, level, salary, league:lg, contract:{weeks,wageK:salary,agentPct,clauseM}});
     }
     s.rivalOffers=list;
   }
-
   function badge(text, good=true){ return `<span class="badge ${good?'good':''}">${text}</span>`; }
-
   function renderRivals(){
     if(!s.contract || !s.club){ rivalsWrap.classList.add('hidden'); rivalOffersEl.innerHTML=''; return; }
     if(!s.rivalOffers.length) generateRivalOffers();
-    rivalsWrap.classList.remove('hidden');
-    rivalOffersEl.innerHTML='';
+    rivalsWrap.classList.remove('hidden'); rivalOffersEl.innerHTML='';
     s.rivalOffers.forEach((o,idx)=>{
       const betterWage = o.salary > s.salary;
       const longer = o.contract.weeks > s.contract.weeks;
       const lowerAgent = o.contract.agentPct < s.contract.agentPct;
       const higherClause = (o.contract.clauseM||0) > (s.contract.clauseM||0);
       const belowClause = (o.contract.clauseM||0) < (s.contract.clauseM||9999);
-
       const el=document.createElement('div'); el.className='offer';
       el.innerHTML = `
         <div>
@@ -472,11 +478,9 @@
         </div>`;
       rivalOffersEl.appendChild(el);
     });
-
     Array.from(rivalOffersEl.querySelectorAll('button[data-ridx]')).forEach(btn=>{
       btn.onclick=()=>{
         const o=s.rivalOffers[+btn.getAttribute('data-ridx')];
-        // clause already checked/disabled; still guard
         if(s.contract && o.contract.clauseM < (s.contract.clauseM||9999)){ log('offer below release clause, cannot sign'); return; }
         s.club={name:o.name, level:o.level}; s.league=o.league; s.salary=o.salary; s.contract={...o.contract};
         s.offers=[]; s.rivalOffers=[];
@@ -508,7 +512,7 @@
     });
   }
 
-  function refreshOffers(){ s.offers=generateOffers(5); log('market refreshed'); renderOffers(); }
+  function refreshOffers(){ s.offers=generateOffers(5); log('market refreshed'); renderOffers(); if(s.club && s.contract){ s.rivalOffers=[]; renderRivals(); } }
   function trials(){ s.offers=generateOffers(4); log('trial offers arrived'); renderOffers(); nextWeek(); draw(); }
   function openMarket(){ refreshOffers(); nextWeek(); draw(); }
   function leaveClub(){ if(!s.club){log('already free agent');return;} if(s.contract && s.contract.weeks>0){log('cannot leave: contract active');return;}
@@ -529,39 +533,43 @@
     if(!s.club||!s.contract){ log('no active club contract'); return; }
     const avg=s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
     let chance=clamp(0.35+(avg-6)*0.05+(s.fame/400),0.15,0.75);
-    if(Math.random()<chance){ s.pendingExtension=buildExtensionOffer(true); showExtensionModal(); log('club prepared an extension offer'); }
+    if(Math.random()<chance){ s.pendingExtension=buildExtensionOffer(true); if(!s.suppressPopups) showExtensionModal(); log('club prepared an extension offer'); }
     else log('club not ready to extend yet');
   }
   function maybeAutoExtension(){
     if(!s.club||!s.contract) return;
     if(s.contract.weeks<=10 && !s.pendingExtension){
-      if(Math.random()<0.30){ s.pendingExtension=buildExtensionOffer(false); showExtensionModal(); log('club offers extension'); }
+      if(Math.random()<0.30){ s.pendingExtension=buildExtensionOffer(false); if(!s.suppressPopups) showExtensionModal(); log('club offers extension'); }
     }
   }
   function showExtensionModal(){
-    if(!s.pendingExtension) return;
+    if(!s.pendingExtension || !s.contract || !s.club) return;
     const o=s.pendingExtension;
     $('extendDetails').innerHTML =
       `<div><b>${(s.club?.name||o.club?.name||'Your club')}</b> proposes an extension</div>
        <div>Term: <b>${o.weeks} weeks</b> • Wage: <b>${o.wageK}k/w</b></div>
        <div>Agent: <b>${Math.round(o.agentPct*100)}%</b> • Release clause: <b>€${o.clauseM.toFixed(1)}m</b></div>
        <div class="muted">Offer origin: ${o.source}</div>`;
-    $('extendModal').classList.add('show');
+    extendModal.classList.add('show');
   }
   function acceptExtension(){
-    const o=s.pendingExtension; if(!o) return;
+    const o=s.pendingExtension;
+    if(!o){ extendModal.classList.remove('show'); log('no active extension offer'); return; }
     if(!s.club && o.club){ s.club=o.club; }
     if(!s.league && o.league){ s.league=o.league; }
     s.contract={weeks:o.weeks,wageK:o.wageK,agentPct:o.agentPct,clauseM:o.clauseM};
     s.salary=o.wageK;
     s.pendingExtension=null;
-    $('extendModal').classList.remove('show');
+    extendModal.classList.remove('show');
     log(`extension signed: ${s.contract.weeks}w • ${s.salary}k/w`);
-    s.rivalOffers=[]; // regenerate under new deal
+    s.rivalOffers=[];
     if(s.club && !s.fixture) scheduleMatch();
     draw();
   }
-  function declineExtension(){ if(!s.pendingExtension) return; $('extendModal').classList.remove('show'); s.pendingExtension=null; log('extension declined'); }
+  function declineExtension(){
+    if(!s.pendingExtension){ extendModal.classList.remove('show'); log('no active extension offer'); return; }
+    extendModal.classList.remove('show'); s.pendingExtension=null; log('extension declined');
+  }
 
   // week/season
   function nextWeek(){
@@ -575,8 +583,9 @@
         log('contract expired • you are a free agent');
         s.contract=null; s.club=null; s.league=null; s.salary=0; s.fixture=null;
         s.pendingExtension=null; s.rivalOffers=[];
+        // close any lingering modal to avoid “stuck popup”
+        extendModal.classList.remove('show');
       } else {
-        // occasional refresh of rival offers during season
         if(Math.random()<0.25) { s.rivalOffers=[]; }
       }
     }
@@ -596,10 +605,10 @@
   function seasonStart(){ scheduleMatch(); generateRumors(); draw(); }
   function seasonEnd(){
     const avg=s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
-    if(avg>=7.8) log(`award shortlists: ${pick(AWARDS)}`);
+    if(avg>=7.8) log(`award shortlists: ${pick(['Ballon d’Or','Golden Boot','Playmaker Award','Puskás','Best GK'])}`);
     if(s.stats.goals>=20) log('Golden Boot contender');
-    s.stats.seasons.push({season:s.season, age:s.age, apps:s.stats.apps, goals:s.stats.goals, ast:s.stats.ast, cs:s.stats.cs, avg:round(avg,2), value:marketValueEUR()});
-    if(s.age>26){ const baseDecline=s.age>=30?2:1; const formDecline=avg<6.8?2:0; for(const k in s.skills){ s.skills[k]=clamp(s.skills[k]-baseDecline-formDecline,30,99);} log('aging decline applied'); }
+    s.stats.seasons.push({season:s.season, age:s.age, apps:s.stats.apps, goals:s.stats.goals, ast:s.stats.ast, cs:s.stats.cs, avg:Math.round((s.stats.ratingSum/(s.stats.apps||1))*100)/100, value:marketValueEUR()});
+    if(s.age>26){ const baseDecline=s.age>=30?2:1; const formDecline=(s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0)<6.8?2:0; for(const k in s.skills){ s.skills[k]=clamp(s.skills[k]-baseDecline-formDecline,30,99);} log('aging decline applied'); }
     s.stats.apps=0; s.stats.goals=0; s.stats.ast=0; s.stats.cs=0; s.stats.ratingSum=0;
   }
 
@@ -627,7 +636,7 @@
   }
   function maybeBan(){ if(s.ban) return; if(Math.random()<0.01){ const weeks=Math.round(rnd(2,8)); s.ban={name:'Doping ban',weeks}; log(`banned for doping (${weeks} weeks)`); } }
 
-  // match engine
+  // match
   function playMatch(){
     if(!s.fixture||s.injury||s.ban||!s.contract) return;
     const opp=s.fixture.strength;
@@ -655,8 +664,9 @@
     maybeInjure('match'); maybeBan(); s.fixture=null; nextWeek(); scheduleMatch(); draw();
   }
 
-  // skip season
+  // skip season (suppress popups during loop)
   function skipSeason(){
+    s.suppressPopups=true;
     let guard=300;
     while(s.week<=SEASON_WEEKS && guard-->0){
       if(s.club && !s.fixture) scheduleMatch();
@@ -664,6 +674,8 @@
       if(s.fixture) playMatch(); else { if(!s.club){ trials(); } else { rest(); } }
       if(s.week===1) break;
     }
+    s.suppressPopups=false;
+    if(s.pendingExtension && s.contract) showExtensionModal();
     log('season skipped'); draw();
   }
 
@@ -714,41 +726,34 @@
   };
 
   // buttons
-  $('btnTrain').onclick=train;
-  $('btnRest').onclick=rest;
-  $('btnSocial').onclick=social;
-  $('btnFindClub').onclick=trials;
-  $('btnOpenMarket').onclick=openMarket;
+  $('btnTrain').onclick=train; $('btnRest').onclick=rest; $('btnSocial').onclick=social;
+  $('btnFindClub').onclick=trials; $('btnOpenMarket').onclick=openMarket;
   $('btnAskRaise').onclick=()=>{
     if(!s.club||!s.contract){ log('no club to ask raise'); return; }
     if(s.raiseCooldownUntilSeason && s.season < s.raiseCooldownUntilSeason){ log(`cannot ask for a raise until Season ${s.raiseCooldownUntilSeason}`); return; }
     const avg=s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
     let chance=0.6*(0.2+(avg-6)*0.15+(s.fame/200)); chance=clamp(chance,0.03,0.45);
     if(Math.random()<chance){ const bump=Math.round(rnd(4,10)); s.salary+=bump; s.contract.wageK=s.salary; log(`raise accepted +${bump}k/w (next request Season ${s.season+2})`);}
-    else{ log(`raise denied (next request Season ${s.season+2})`); s.morale=clamp(s.morale-3,0,100); }
+    else{ log(`raise denied (next request Season ${s.season+2})`); s.morale=Math.max(0,s.morale-3); }
     s.raiseCooldownUntilSeason=s.season+2; draw();
   };
-  $('btnPlay').onclick=playMatch;
-  $('btnSkipSeason').onclick=skipSeason;
-  $('btnRetire').onclick=retire;
+  $('btnPlay').onclick=playMatch; $('btnSkipSeason').onclick=skipSeason; $('btnRetire').onclick=retire;
   $('btnRumors').onclick=()=>{generateRumors(); log('rumors updated');};
-  $('btnRefreshOffers').onclick=()=>{ refreshOffers(); if(s.club && s.contract) { s.rivalOffers=[]; renderRivals(); } };
-  $('btnLeave').onclick=leaveClub;
-  $('btnRequestExtend').onclick=requestExtension;
+  $('btnRefreshOffers').onclick=refreshOffers; $('btnLeave').onclick=leaveClub; $('btnRequestExtend').onclick=requestExtension;
 
   $('saveABtn').onclick=()=>save('A'); $('loadABtn').onclick=()=>load('A');
   $('saveBBtn').onclick=()=>save('B'); $('loadBBtn').onclick=()=>load('B');
   $('clearBtn').onclick=clear;
-  $('btnBuyHouse1').onclick=()=>buyHouse(1);
-  $('btnBuyHouse2').onclick=()=>buyHouse(2);
-  $('btnBuyHouse3').onclick=()=>buyHouse(3);
+  $('btnBuyHouse1').onclick=()=>buyHouse(1); $('btnBuyHouse2').onclick=()=>buyHouse(2); $('btnBuyHouse3').onclick=()=>buyHouse(3);
   $('btnBuyCar').onclick=()=>buyCar();
 
+  // modal controls (incl. Force Close)
   $('acceptExtend').onclick=acceptExtension;
   $('declineExtend').onclick=declineExtension;
+  $('forceCloseExtend').onclick=()=>{ extendModal.classList.remove('show'); s.pendingExtension=null; log('extension popup force-closed'); };
   $('closeRetire').onclick=()=>$('retireModal').classList.remove('show');
 
-  // retirement view
+  // retirement
   function retire(){
     const sea=s.stats.seasons, sum=(arr,k)=>arr.reduce((a,x)=>a+(x[k]||0),0);
     const totalApps=sum(sea,'apps')+(s.stats.apps||0);
@@ -772,6 +777,13 @@
   // rumors render helper
   function renderRumors(){ rumorsEl.innerHTML=''; s.rumors.forEach(r=>{ const d=document.createElement('div'); d.className='rumor'; d.textContent=r; rumorsEl.appendChild(d); }); }
 
+  // trials/open market after start
+  function refreshAndDraw(){ refreshOffers(); draw(); }
+  function trials(){ s.offers=generateOffers(4); log('trial offers arrived'); renderOffers(); nextWeek(); draw(); }
+  function openMarket(){ refreshOffers(); nextWeek(); draw(); }
+  window.refreshAndDraw=refreshAndDraw;
+
+  // initialize rumors once in game
 })();
 </script>
 </body>
