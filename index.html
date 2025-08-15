@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Football Career Simulator — v1.1</title>
+<title>Football Career Simulator — v1.2</title>
 <style>
   :root{
     --bg:#0d1117; --card:#161b22; --surface:#1f2630; --ink:#e6edf3; --muted:#8b949e;
@@ -46,6 +46,9 @@
        background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px; border:1px solid var(--border)}
   .offer{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0f172a; border:1px solid var(--border);
          border-radius:12px; padding:10px; margin-bottom:8px}
+  .offer .badges{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px}
+  .badge{font-size:11px; border-radius:999px; padding:3px 8px; border:1px solid var(--border); background:#0c1425; color:#cde9ff}
+  .badge.good{background:#072316; color:#c7f7d4; border-color:#114b2e}
   .rumor{padding:6px 10px; background:#0f172a; border:1px solid var(--border); border-radius:10px; margin-bottom:6px}
   details.card>summary{font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between}
   details.card[open]{box-shadow:0 0 0 1px var(--border) inset}
@@ -74,7 +77,7 @@
       <div class="col card">
         <h2>player setup</h2>
 
-        <label>name<input id="name" placeholder="Your name"/></label><br><br>
+        <label>name<input id="name" placeholder="Your name" /></label><br><br>
 
         <label>age
           <select id="age">
@@ -84,7 +87,7 @@
         </label><br><br>
 
         <label>max contract seasons (1–5)
-          <input id="maxSeasons" type="number" min="1" max="5" value="5"/>
+          <input id="maxSeasons" type="number" min="1" max="5" value="5" />
         </label><br><br>
 
         <label>origin country
@@ -133,12 +136,13 @@
 
         <div class="divider"></div>
         <h3>Game Version</h3>
-        <p><b>v1.1</b></p>
+        <p><b>v1.2</b></p>
 
         <h3>New updates</h3>
         <ul>
-          <li><b>v1.1</b> — Season-only contracts (no 20w deals). Fixed extension bug that could leave you Free Agent with weeks on contract. Extensions restore club properly.</li>
-          <li><b>v1.0</b> — Contracts system, extensions, save slots, house tiers, skip season, injuries & bans.</li>
+          <li><b>v1.2</b> — <i>Rival offers</i> under your current contract (2 clubs). Highlights show better wage/term/agent/clause; sign only if clause met.</li>
+          <li><b>v1.1</b> — Season-only contracts; fixed extension bug when contract expired during popup.</li>
+          <li><b>v1.0</b> — Contracts system, extensions, saves, houses, injuries/bans, skip season.</li>
         </ul>
       </div>
     </div>
@@ -217,7 +221,16 @@
         <div class="card">
           <h2>transfers & contract</h2>
           <div id="contractBox" class="muted">no active contract</div>
+
           <div id="offers" class="list" style="margin-top:8px"></div>
+
+          <!-- Rival offers block -->
+          <div id="rivalsWrap" class="hidden" style="margin-top:10px">
+            <div class="divider"></div>
+            <h3>Rival offers</h3>
+            <div id="rivalOffers" class="list"></div>
+          </div>
+
           <div class="toolbar">
             <button id="btnRefreshOffers" class="alt">Refresh offers</button>
             <button id="btnRequestExtend" class="good">Request extension</button>
@@ -299,9 +312,11 @@
     money:0, assets:{house:0,car:false},
     stats:{apps:0,goals:0,ast:0,cs:0,ratingSum:0,seasons:[]},
     offers:[],rumors:[],valueHistory:[],_vhStamp:null,raiseCooldownUntilSeason:null,
-    pendingExtension:null // {weeks,wageK,agentPct,clauseM,club,league}
+    pendingExtension:null,   // {weeks,wageK,agentPct,clauseM,club,league}
+    rivalOffers:[]           // list of 2 rival offers while under contract
   };
 
+  // utils
   const rnd=(a,b)=>Math.random()*(b-a)+a;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const round=(v,d=0)=>{const m=Math.pow(10,d);return Math.round(v*m)/m};
@@ -310,7 +325,7 @@
   const kToWeeklyNet=(k,lg)=>k*(1-(s.contract?s.contract.agentPct:0.03))*(1-(lg?.tax??0.4));
   const $=id=>document.getElementById(id);
 
-  // UI refs
+  // DOM refs
   const screenStart=$('screen-start'), screenGame=$('screen-game');
   const clubName=$('clubName'), seasonPill=$('seasonPill'), weekPill=$('weekPill'), agePill=$('agePill'), posPill=$('posPill'),
         leaguePill=$('leaguePill'), salaryPill=$('salaryPill'), famePill=$('famePill'), valuePill=$('valuePill'),
@@ -318,13 +333,12 @@
   const ovrEl=$('ovr'), eEl=$('energy'), mEl=$('morale'), shEl=$('shoot'), paEl=$('pass'), pcEl=$('pace'), dfEl=$('def'), phEl=$('phys'), gkEl=$('gk');
   const fixtureEl=$('fixture'), logEl=$('log'), rumorsEl=$('rumors');
   const contractBox=$('contractBox'), offersEl=$('offers'), careerEl=$('career'), assetsEl=$('assets');
+  const rivalsWrap=$('rivalsWrap'), rivalOffersEl=$('rivalOffers');
 
-  const btnPlay=$('btnPlay');
-
-  // Logging
+  // logging
   function log(t){const time=`S${s.season}W${s.week}`; logEl.textContent=`${time} • ${t}\n`+logEl.textContent;}
 
-  // Ratings/value
+  // ovr & value
   function updateOVR(){
     const w={ST:{shoot:3,pass:2,pace:3,def:1,phys:2,gk:0.5},CAM:{shoot:2,pass:3,pace:2,def:1,phys:2,gk:0.5},
              CM:{shoot:2,pass:2,pace:2,def:2,phys:2,gk:0.5},CB:{shoot:1,pass:1.5,pace:2,def:3,phys:3,gk:0.5},
@@ -340,18 +354,18 @@
     return round(base*pm*af*ff*lf,1);
   }
 
-  // Contract terms (seasons only)
+  // contract terms
   function preferredMaxYearsByAge(age){ if(age<=22) return 5; if(age<=27) return 4; if(age<=31) return 3; return 2; }
   function chooseYears(age,cap){
     const pref=Math.min(preferredMaxYearsByAge(age), cap);
-    const weights=[]; for(let y=1;y<=pref;y++){ const bias = (age<=22)? y : (age<=27)? (0.7+0.3*y/pref) : (1/y); weights.push(bias); }
+    const weights=[]; for(let y=1;y<=pref;y++){ const bias=(age<=22)? y : (age<=27)? (0.7+0.3*y/pref) : (1/y); weights.push(bias); }
     let sum=weights.reduce((a,b)=>a+b,0), r=Math.random()*sum, acc=0;
     for(let i=0;i<weights.length;i++){ acc+=weights[i]; if(r<=acc) return i+1; }
     return pref;
   }
-  function yearsToWeeks(y){ return y*SEASON_WEEKS; }
+  const yearsToWeeks=(y)=>y*SEASON_WEEKS;
 
-  // Draw
+  // draw
   function draw(){
     updateOVR();
     clubName.textContent=s.club? s.club.name : 'Free Agent';
@@ -372,8 +386,8 @@
     ovrEl.textContent=s.ovr; eEl.textContent=s.energy; mEl.textContent=s.morale;
     shEl.textContent=s.skills.shoot; paEl.textContent=s.skills.pass; pcEl.textContent=s.skills.pace; dfEl.textContent=s.skills.def; phEl.textContent=s.skills.phys; gkEl.textContent=s.skills.gk;
     fixtureEl.textContent = s.fixture? `${s.fixture.home} vs ${s.fixture.away} • opp ${s.fixture.strength} ${s.fixture.cup? '• '+s.fixture.cup:''}` : (s.club? 'next match to be scheduled' : 'no club, request trials or open market');
-    btnPlay.disabled=!s.fixture || !!s.injury || !!s.ban || !s.contract;
-    renderContract(); renderOffers(); renderCareer(); renderAssets();
+    $('btnPlay').disabled=!s.fixture || !!s.injury || !!s.ban || !s.contract;
+    renderContract(); renderOffers(); renderRivals(); renderCareer(); renderAssets();
   }
 
   function renderContract(){
@@ -391,7 +405,7 @@
   }
   function renderAssets(){ const stars='★'.repeat(s.assets.house) + (s.assets.house?'':'—'); assetsEl.textContent=`assets: ${s.assets.house? stars+' house':'—'}${s.assets.car?' • 🚗 car':''}`; }
 
-  // Offers
+  // salary & offers
   function salaryFor(level,lg){ const base=clamp((level-55)*1.5 + rnd(3,10),2,400); return Math.round(base*(lg?.salaryMult||1)); }
   function generateOffers(n=4){
     const out=[];
@@ -408,6 +422,70 @@
     }
     out.sort((a,b)=>b.level-a.level); return out;
   }
+
+  // Rival offers (while under contract)
+  function generateRivalOffers(){
+    if(!s.club || !s.contract) { s.rivalOffers=[]; return; }
+    const list=[];
+    for(let i=0;i<2;i++){
+      const lg=pick(LEAGUES), club=pick(lg.clubs);
+      const level=clamp(Math.round(s.ovr + lg.prestige*8 + rnd(-6,10)),55,94);
+      const salary=Math.max(s.salary+1, salaryFor(level,lg)); // nudge at least > current often
+      const years=chooseYears(s.age, s.maxSeasons);
+      const weeks=yearsToWeeks(years);
+      const agentPct=Math.max(0.02,(s.contract.agentPct - rnd(0.0,0.01))); // maybe slightly better
+      const clauseM=round(marketValueEUR()*(1.0+rnd(0.6,1.2)),1);
+      list.push({name:club.n, level, salary, league:lg, contract:{weeks,wageK:salary,agentPct,clauseM}});
+    }
+    s.rivalOffers=list;
+  }
+
+  function badge(text, good=true){ return `<span class="badge ${good?'good':''}">${text}</span>`; }
+
+  function renderRivals(){
+    if(!s.contract || !s.club){ rivalsWrap.classList.add('hidden'); rivalOffersEl.innerHTML=''; return; }
+    if(!s.rivalOffers.length) generateRivalOffers();
+    rivalsWrap.classList.remove('hidden');
+    rivalOffersEl.innerHTML='';
+    s.rivalOffers.forEach((o,idx)=>{
+      const betterWage = o.salary > s.salary;
+      const longer = o.contract.weeks > s.contract.weeks;
+      const lowerAgent = o.contract.agentPct < s.contract.agentPct;
+      const higherClause = (o.contract.clauseM||0) > (s.contract.clauseM||0);
+      const belowClause = (o.contract.clauseM||0) < (s.contract.clauseM||9999);
+
+      const el=document.createElement('div'); el.className='offer';
+      el.innerHTML = `
+        <div>
+          <div><b>${o.name}</b> • level ${o.level}</div>
+          <div class="muted">${o.league.name} • wage ${o.salary}k/w • ${o.contract.weeks}w • agent ${Math.round(o.contract.agentPct*100)}% • clause €${o.contract.clauseM.toFixed(1)}m</div>
+          <div class="badges">
+            ${betterWage? badge('↑ wage') : '' }
+            ${longer? badge('↑ term') : '' }
+            ${lowerAgent? badge('↓ agent') : '' }
+            ${higherClause? badge('↑ clause') : '' }
+            ${belowClause? badge('below clause', false) : '' }
+          </div>
+        </div>
+        <div class="toolbar" style="min-width:140px">
+          <button class="accent" data-ridx="${idx}" ${belowClause?'disabled':''}>${belowClause?'below clause':'Sign'}</button>
+        </div>`;
+      rivalOffersEl.appendChild(el);
+    });
+
+    Array.from(rivalOffersEl.querySelectorAll('button[data-ridx]')).forEach(btn=>{
+      btn.onclick=()=>{
+        const o=s.rivalOffers[+btn.getAttribute('data-ridx')];
+        // clause already checked/disabled; still guard
+        if(s.contract && o.contract.clauseM < (s.contract.clauseM||9999)){ log('offer below release clause, cannot sign'); return; }
+        s.club={name:o.name, level:o.level}; s.league=o.league; s.salary=o.salary; s.contract={...o.contract};
+        s.offers=[]; s.rivalOffers=[];
+        log(`signed with ${s.club.name} (${s.league.name}) via rival offer • ${s.salary}k/w • ${s.contract.weeks}w`);
+        scheduleMatch(); draw();
+      };
+    });
+  }
+
   function renderOffers(){
     offersEl.innerHTML='';
     s.offers.forEach((o,idx)=>{
@@ -423,23 +501,25 @@
           log('release clause met');
         }
         s.club={name:o.name, level:o.level}; s.league=o.league; s.salary=o.salary; s.contract={...o.contract};
-        s.offers=[]; log(`signed for ${s.club.name} (${s.league.name}) • ${s.salary}k/w • ${s.contract.weeks}w`);
+        s.offers=[]; s.rivalOffers=[];
+        log(`signed for ${s.club.name} (${s.league.name}) • ${s.salary}k/w • ${s.contract.weeks}w`);
         scheduleMatch(); draw();
       };
     });
   }
+
   function refreshOffers(){ s.offers=generateOffers(5); log('market refreshed'); renderOffers(); }
   function trials(){ s.offers=generateOffers(4); log('trial offers arrived'); renderOffers(); nextWeek(); draw(); }
   function openMarket(){ refreshOffers(); nextWeek(); draw(); }
   function leaveClub(){ if(!s.club){log('already free agent');return;} if(s.contract && s.contract.weeks>0){log('cannot leave: contract active');return;}
-    log(`left ${s.club.name}`); s.club=null; s.league=null; s.salary=0; s.fixture=null; s.contract=null; draw(); }
+    log(`left ${s.club.name}`); s.club=null; s.league=null; s.salary=0; s.fixture=null; s.contract=null; s.rivalOffers=[]; draw(); }
 
-  // Extensions
+  // extensions
   function buildExtensionOffer(fromRequest){
     const bump=1+rnd(0.05,0.20);
     const newWage=Math.max(s.salary+1, Math.round(s.salary*bump));
     const years=chooseYears(s.age, s.maxSeasons);
-    const weeks=yearsToWeeks(years);           // seasons only
+    const weeks=yearsToWeeks(years);
     const newAgent=Math.max(0.02, (s.contract?.agentPct||0.03)-0.005);
     const newClause=round(marketValueEUR()*(1.2+rnd(0.1,0.6)),1);
     return {weeks,wageK:newWage,agentPct:newAgent,clauseM:newClause,source:(fromRequest?'requested':'club'),
@@ -470,7 +550,6 @@
   }
   function acceptExtension(){
     const o=s.pendingExtension; if(!o) return;
-    // If contract expired in the meantime, restore club/league from offer
     if(!s.club && o.club){ s.club=o.club; }
     if(!s.league && o.league){ s.league=o.league; }
     s.contract={weeks:o.weeks,wageK:o.wageK,agentPct:o.agentPct,clauseM:o.clauseM};
@@ -478,13 +557,13 @@
     s.pendingExtension=null;
     $('extendModal').classList.remove('show');
     log(`extension signed: ${s.contract.weeks}w • ${s.salary}k/w`);
-    // schedule fixture if we just reattached club
+    s.rivalOffers=[]; // regenerate under new deal
     if(s.club && !s.fixture) scheduleMatch();
     draw();
   }
   function declineExtension(){ if(!s.pendingExtension) return; $('extendModal').classList.remove('show'); s.pendingExtension=null; log('extension declined'); }
 
-  // Week/Season
+  // week/season
   function nextWeek(){
     if(s.contract && s.league){
       const netK=kToWeeklyNet(s.salary,s.league);
@@ -495,7 +574,10 @@
       if(s.contract.weeks<=0){
         log('contract expired • you are a free agent');
         s.contract=null; s.club=null; s.league=null; s.salary=0; s.fixture=null;
-        s.pendingExtension=null; // prevent stale extension causing the bug
+        s.pendingExtension=null; s.rivalOffers=[];
+      } else {
+        // occasional refresh of rival offers during season
+        if(Math.random()<0.25) { s.rivalOffers=[]; }
       }
     }
     if(s.ban){ s.ban.weeks-=1; if(s.ban.weeks<=0){ log('ban lifted'); s.ban=null; } }
@@ -521,7 +603,7 @@
     s.stats.apps=0; s.stats.goals=0; s.stats.ast=0; s.stats.cs=0; s.stats.ratingSum=0;
   }
 
-  // Fixtures
+  // fixtures
   function scheduleMatch(){
     if(!s.club){ s.fixture=null; return; }
     const isCup=Math.random()<0.15;
@@ -530,7 +612,7 @@
     log(`match scheduled: ${s.fixture.home} vs ${s.fixture.away}${isCup? ' • '+s.fixture.cup:''}`);
   }
 
-  // Injuries & bans
+  // injuries / bans
   function randomInjury(){
     const t=[{name:'Bruised foot',min:1,max:2,prob:0.30},{name:'Muscle strain',min:2,max:4,prob:0.24},{name:'Sprained ankle',min:3,max:6,prob:0.18},{name:'Ligament tear',min:8,max:16,prob:0.08},{name:'Fracture',min:10,max:20,prob:0.05},{name:'Career-ending',min:999,max:999,prob:0.01},{name:'Concussion',min:1,max:3,prob:0.06}];
     let r=Math.random(),acc=0; for(const it of t){ acc+=it.prob; if(r<=acc) return it; } return null;
@@ -545,7 +627,7 @@
   }
   function maybeBan(){ if(s.ban) return; if(Math.random()<0.01){ const weeks=Math.round(rnd(2,8)); s.ban={name:'Doping ban',weeks}; log(`banned for doping (${weeks} weeks)`); } }
 
-  // Match engine
+  // match engine
   function playMatch(){
     if(!s.fixture||s.injury||s.ban||!s.contract) return;
     const opp=s.fixture.strength;
@@ -573,7 +655,7 @@
     maybeInjure('match'); maybeBan(); s.fixture=null; nextWeek(); scheduleMatch(); draw();
   }
 
-  // Skip season
+  // skip season
   function skipSeason(){
     let guard=300;
     while(s.week<=SEASON_WEEKS && guard-->0){
@@ -585,19 +667,19 @@
     log('season skipped'); draw();
   }
 
-  // Rumors
+  // rumors
   function playerName(){ const f=['Leo','Cristian','Ney','Kyl','Erli','Buka','Luka','Kevin','Jude','Erik','Marco','Rafa']; const l=['Silva','Garcia','Lopez','Khan','Kim','Nakamura','Tavares','Hansen','Johansson','Benz','Rossi','Müller']; return f[Math.floor(Math.random()*f.length)]+' '+l[Math.floor(Math.random()*l.length)]; }
   function generateRumors(){ const list=[]; for(let i=0;i<5;i++){ const from=LEAGUES[Math.floor(Math.random()*LEAGUES.length)]; const to=LEAGUES[Math.floor(Math.random()*LEAGUES.length)]; const price=round(rnd(5,120),1); const age=Math.round(rnd(17,34)); list.push(`${playerName()} (${age}) from ${pick(from.clubs).n} to ${pick(to.clubs).n} for €${price}m`); } s.rumors=list; renderRumors(); }
   function renderRumors(){ rumorsEl.innerHTML=''; s.rumors.forEach(r=>{ const d=document.createElement('div'); d.className='rumor'; d.textContent=r; rumorsEl.appendChild(d); }); }
 
-  // Economy
+  // economy
   function buyHouse(level){ const price=level===1?0.1:level===2?1.0:10.0; if(s.assets.house>=level){log('you already own this or better house');return;}
     const prev=s.assets.house===1?0.1:s.assets.house===2?1.0:0, diff=price-prev;
     if(s.money<diff){log('not enough balance for upgrade');return;}
     s.money-=diff; s.assets.house=level; log(`bought ${'★'.repeat(level)} house for €${diff.toFixed(1)}m`); draw();}
   function buyCar(){ const cost=0.1; if(s.assets.car){log('you already have a car');return;} if(s.money<cost){log('not enough balance for car');return;} s.money-=cost; s.assets.car=true; log('bought a car'); draw(); }
 
-  // Actions
+  // actions
   function train(){ if(s.injury||s.ban){log('cannot train while injured/banned'); nextWeek(); draw(); return;} const gain=Math.round(rnd(1,3));
     const target=s.pos==='GK'?'gk':['shoot','pass','pace','def','phys'][Math.floor(Math.random()*5)];
     s.skills[target]=clamp(s.skills[target]+gain,30,99); s.energy=clamp(s.energy-Math.round(rnd(5,10)),0,100);
@@ -608,37 +690,36 @@
   function social(){ const fameGain=Math.round(rnd(3,9)); s.fame=clamp(s.fame+fameGain+(s.goat?1:0),0,999); s.morale=clamp(s.morale+Math.round(rnd(1,4)),0,100); s.energy=clamp(s.energy-Math.round(rnd(2,6)),0,100); log(`social media +${fameGain} fame`);
     nextWeek(); if(s.club&&!s.fixture) scheduleMatch(); draw();}
 
-  // Save/Load
+  // save/load
   function save(slot){ localStorage.setItem('fcareer_'+slot, JSON.stringify(s)); log('saved to '+slot); }
   function load(slot){ const raw=localStorage.getItem('fcareer_'+slot); if(!raw){ log('no save in '+slot); return; } Object.assign(s, JSON.parse(raw)); log('loaded '+slot); draw(); }
   function clear(){ ['A','B'].forEach(k=>localStorage.removeItem('fcareer_'+k)); log('saves cleared'); }
 
-  // Start
-  document.getElementById('startBtn').onclick=()=>{
-    s.name=document.getElementById('name').value.trim()||'Rookie';
-    s.pos=document.getElementById('pos').value;
-    s.age=parseInt(document.getElementById('age').value,10)||20;
-    s.origin=document.getElementById('origin').value;
-    s.currency=document.getElementById('currency').value;
-    s.goat=document.getElementById('goat').checked;
-    s.maxSeasons=clamp(parseInt(document.getElementById('maxSeasons').value,10)||5,1,5);
-    const diff=document.getElementById('diff').value;
+  // start
+  $('startBtn').onclick=()=>{
+    s.name=$('name').value.trim()||'Rookie';
+    s.pos=$('pos').value;
+    s.age=parseInt($('age').value,10)||20;
+    s.origin=$('origin').value;
+    s.currency=$('currency').value;
+    s.goat=$('goat').checked;
+    s.maxSeasons=clamp(parseInt($('maxSeasons').value,10)||5,1,5);
+    const diff=$('diff').value;
     if(diff==='easy'){ s.skills={shoot:60,pass:60,pace:60,def:58,phys:60,gk:s.pos==='GK'?60:40}; s.energy=85; s.morale=75; s.fame=12; }
     if(diff==='hard'){ s.skills={shoot:50,pass:50,pace:50,def:50,phys:50,gk:s.pos==='GK'?50:40}; s.energy=70; s.morale=60; }
     updateOVR();
-    document.getElementById('screen-start').classList.add('hidden');
-    document.getElementById('screen-game').classList.remove('hidden');
+    screenStart.classList.add('hidden'); screenGame.classList.remove('hidden');
     log(`career started for ${s.name} • ${s.pos} • age ${s.age} • ${s.origin} • max ${s.maxSeasons} seasons/contract`);
     scheduleMatch(); generateRumors(); draw();
   };
 
-  // Wire buttons
-  document.getElementById('btnTrain').onclick=train;
-  document.getElementById('btnRest').onclick=rest;
-  document.getElementById('btnSocial').onclick=social;
-  document.getElementById('btnFindClub').onclick=trials;
-  document.getElementById('btnOpenMarket').onclick=openMarket;
-  document.getElementById('btnAskRaise').onclick=()=>{
+  // buttons
+  $('btnTrain').onclick=train;
+  $('btnRest').onclick=rest;
+  $('btnSocial').onclick=social;
+  $('btnFindClub').onclick=trials;
+  $('btnOpenMarket').onclick=openMarket;
+  $('btnAskRaise').onclick=()=>{
     if(!s.club||!s.contract){ log('no club to ask raise'); return; }
     if(s.raiseCooldownUntilSeason && s.season < s.raiseCooldownUntilSeason){ log(`cannot ask for a raise until Season ${s.raiseCooldownUntilSeason}`); return; }
     const avg=s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
@@ -647,36 +728,35 @@
     else{ log(`raise denied (next request Season ${s.season+2})`); s.morale=clamp(s.morale-3,0,100); }
     s.raiseCooldownUntilSeason=s.season+2; draw();
   };
-  document.getElementById('btnPlay').onclick=playMatch;
-  document.getElementById('btnSkipSeason').onclick=skipSeason;
-  document.getElementById('btnRetire').onclick=retire;
-  document.getElementById('btnRumors').onclick=()=>{generateRumors(); log('rumors updated');};
-  document.getElementById('btnRefreshOffers').onclick=refreshOffers;
-  document.getElementById('btnLeave').onclick=leaveClub;
-  document.getElementById('btnRequestExtend').onclick=requestExtension;
-  document.getElementById('saveABtn').onclick=()=>save('A');
-  document.getElementById('loadABtn').onclick=()=>load('A');
-  document.getElementById('saveBBtn').onclick=()=>save('B');
-  document.getElementById('loadBBtn').onclick=()=>load('B');
-  document.getElementById('clearBtn').onclick=clear;
-  document.getElementById('btnBuyHouse1').onclick=()=>buyHouse(1);
-  document.getElementById('btnBuyHouse2').onclick=()=>buyHouse(2);
-  document.getElementById('btnBuyHouse3').onclick=()=>buyHouse(3);
-  document.getElementById('btnBuyCar').onclick=buyCar;
-  document.getElementById('acceptExtend').onclick=acceptExtension;
-  document.getElementById('declineExtend').onclick=declineExtension;
-  document.getElementById('closeRetire').onclick=()=>document.getElementById('retireModal').classList.remove('show');
+  $('btnPlay').onclick=playMatch;
+  $('btnSkipSeason').onclick=skipSeason;
+  $('btnRetire').onclick=retire;
+  $('btnRumors').onclick=()=>{generateRumors(); log('rumors updated');};
+  $('btnRefreshOffers').onclick=()=>{ refreshOffers(); if(s.club && s.contract) { s.rivalOffers=[]; renderRivals(); } };
+  $('btnLeave').onclick=leaveClub;
+  $('btnRequestExtend').onclick=requestExtension;
 
-  // Retirement
+  $('saveABtn').onclick=()=>save('A'); $('loadABtn').onclick=()=>load('A');
+  $('saveBBtn').onclick=()=>save('B'); $('loadBBtn').onclick=()=>load('B');
+  $('clearBtn').onclick=clear;
+  $('btnBuyHouse1').onclick=()=>buyHouse(1);
+  $('btnBuyHouse2').onclick=()=>buyHouse(2);
+  $('btnBuyHouse3').onclick=()=>buyHouse(3);
+  $('btnBuyCar').onclick=()=>buyCar();
+
+  $('acceptExtend').onclick=acceptExtension;
+  $('declineExtend').onclick=declineExtension;
+  $('closeRetire').onclick=()=>$('retireModal').classList.remove('show');
+
+  // retirement view
   function retire(){
-    const sea=s.stats.seasons, sum=(a,k)=>a.reduce((x,y)=>x+(y[k]||0),0);
+    const sea=s.stats.seasons, sum=(arr,k)=>arr.reduce((a,x)=>a+(x[k]||0),0);
     const totalApps=sum(sea,'apps')+(s.stats.apps||0);
     const totalGoals=sum(sea,'goals')+(s.stats.goals||0);
     const totalAst=sum(sea,'ast')+(s.stats.ast||0);
     const totalCs=sum(sea,'cs')+(s.stats.cs||0);
-    const avg=s.stats.apps? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00';
     const best = s.valueHistory.length ? Math.max(...s.valueHistory.map(v=>v.value)) : marketValueEUR();
-    document.getElementById('retireSummary').innerHTML=
+    $('retireSummary').innerHTML=
       `<div><b>${s.name}</b> • ${s.pos} • ${s.origin}</div>
        <div>Seasons: ${s.season-1} • Clubs played: ${s.stats.seasons.length}+</div>
        <div>Totals: apps ${totalApps}, goals ${totalGoals}, assists ${totalAst}, clean sheets ${totalCs}</div>
@@ -685,15 +765,13 @@
     const pts=s.valueHistory.map((v,i)=>({x:i,y:v.value})), w=680,h=180,p=20,maxY=Math.max(10,...pts.map(p2=>p2.y)),minY=0;
     const sx=i=>p + i*((w-2*p)/Math.max(1,pts.length-1)), sy=y=>h-p - ((y-minY)/(maxY-minY||1))*(h-2*p);
     let d=''; pts.forEach((pt,i)=>{ d+=(i?'L':'M')+sx(pt.x)+','+sy(pt.y)+' ';});
-    document.getElementById('retireGraph').innerHTML=`<svg viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="#2ea043" stroke-width="2"/></svg>`;
-    document.getElementById('retireModal').classList.add('show');
+    $('retireGraph').innerHTML=`<svg viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="#2ea043" stroke-width="2"/></svg>`;
+    $('retireModal').classList.add('show');
   }
 
-  // Rumors render helper (first call happens after start)
+  // rumors render helper
   function renderRumors(){ rumorsEl.innerHTML=''; s.rumors.forEach(r=>{ const d=document.createElement('div'); d.className='rumor'; d.textContent=r; rumorsEl.appendChild(d); }); }
 
-  // Public helpers (used earlier)
-  window.generateRumors=generateRumors; window.renderRumors=renderRumors;
 })();
 </script>
 </body>
