@@ -3,50 +3,62 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Football Career Simulator — v1 Big File (Dark)</title>
+<title>Football Career Simulator — Mobile Responsive v1</title>
 <style>
   :root{
-    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
+    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --danger:#ef4444; --good:#10b981;
   }
   html,body{height:100%}
   body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif; display:flex; justify-content:center; align-items:flex-start; padding:10px; box-sizing:border-box}
-  .app{width:100%; max-width:980px; background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px; box-sizing:border-box}
+  .app{width:100%; max-width:1200px; background:var(--card); border-radius:26px; box-shadow:0 12px 30px rgba(0,0,0,.4); padding:20px; box-sizing:border-box}
   .row{display:flex; gap:22px; flex-wrap:wrap}
-  .col{flex:1 1 260px; min-width:240px}
-  .card{background:#334155; border-radius:18px; padding:14px; box-sizing:border-box}
+  .col{flex:1 1 320px; min-width:260px}
+  .card{background:#334155; border-radius:18px; padding:14px; box-sizing:border-box; margin-bottom:18px}
   h1{font-size:22px; margin:4px 0 10px}
   h2{font-size:16px; margin:0 0 8px}
   .muted{color:var(--muted)}
   .toolbar{display:flex; gap:8px; flex-wrap:wrap}
-  button{flex:1 1 auto; appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; background:#0f172a; color:#f8fafc; transition:transform .04s ease,opacity .2s; min-width:80px}
+  button{flex:1 1 auto; appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; background:#0f172a; color:#f8fafc; transition:transform .04s ease,opacity .2s; min-width:92px}
   button:active{transform:translateY(1px)}
   button[disabled]{opacity:.5; cursor:not-allowed}
   .accent{background:var(--accent); color:#0b1320}
   .alt{background:var(--accent-2)}
   .warn{background:var(--warn)}
   .danger{background:var(--danger)}
-  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px}
+  .good{background:var(--good)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:12px}
   .stat{background:#1e293b; border-radius:12px; padding:10px; text-align:center; color:var(--ink)}
   .big{font-size:22px; font-weight:800}
-  .list{max-height:260px; overflow:auto}
-  .pill{display:inline-block; background:#475569; color:var(--ink); border-radius:999px; padding:4px 10px; font-size:12px; margin:2px 4px 2px 0}
-  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; max-height:220px; overflow:auto; background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px; box-sizing:border-box}
-  input,select{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #475569; background:#1e293b; color:var(--ink); box-sizing:border-box}
+  .list{max-height:280px; overflow:auto}
+  .pill{display:inline-block; background:#475569; color:#f8fafc; border-radius:999px; padding:6px 10px; font-size:12px; margin:2px 6px 2px 0}
+  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; max-height:240px; overflow:auto; background:#0b1020; color:#d1e7ff; border-radius:12px; padding:10px; box-sizing:border-box}
+  input,select{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #475569; background:#1e293b; color:#f1f5f9; box-sizing:border-box}
   .hidden{display:none}
   .divider{height:1px; background:#475569; margin:10px 0}
-  .season{font-weight:800}
-  .center{display:flex; align-items:center; justify-content:center}
-  @media (max-width:768px){
-    .row{flex-direction:column}
+  .offer{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#1e293b; border-radius:12px; padding:10px; margin-bottom:8px}
+  .chips{display:flex; gap:6px; flex-wrap:wrap}
+  .money{font-weight:800}
+  .flex{display:flex; gap:10px; align-items:center}
+  .rumor{padding:6px 10px; background:#1e293b; border-radius:10px; margin-bottom:6px}
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px}
+  .modal.show{display:flex}
+  .modal .panel{background:#0f172a; border:2px solid #475569; border-radius:16px; padding:16px; width:100%; max-width:760px; max-height:85vh; overflow:auto}
+  svg{max-width:100%}
+
+  /* Mobile tweaks */
+  @media (max-width:820px){
+    .app{padding:14px}
+    .row{flex-direction:column; gap:18px}
     .col{min-width:100%}
     h1{font-size:18px}
-    h2{font-size:14px}
-    button{font-size:14px; padding:8px 10px}
+    h2{font-size:15px}
+    button{font-size:14px; padding:9px 10px; min-width:0}
     .big{font-size:18px}
-    .grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr));}
-    .list{max-height:180px}
-    .log{max-height:160px}
-    #rumorsPanel{display:none !important;}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))}
+    .list{max-height:220px}
+    .log{max-height:200px}
+    /* completely hide rumors card on mobile */
+    #rumorsPanel{display:none !important}
   }
 </style>
 </head>
@@ -55,7 +67,7 @@
     <!-- START SCREEN -->
     <div id="screen-start">
       <h1>Football Career Simulator — v1</h1>
-      <p class="muted">Dark, single-file MVP. Includes origin country, leagues and cups, awards, economy, injuries & bans, contracts, taxes, agent, currency, rumors, GOAT mode, retirement summary, and skip season.</p>
+      <p class="muted">Dark, mobile-first, single file. Real leagues & salaries, contracts, taxes, raises (cooldown), injuries/bans, cups, rumors, economy, skip season & retirement.</p>
       <div class="row">
         <div class="col card">
           <h2>player setup</h2>
@@ -102,7 +114,7 @@
               <option value="GBP">£ Pound</option>
               <option value="USD">$ Dollar</option>
             </select>
-            <span class="muted">(league wage stays local, UI converts)</span>
+            <span class="muted">(leagues pay local; UI converts)</span>
           </label>
           <label class="flex" style="margin-top:8px"><input id="goat" type="checkbox"> <span>G.O.A.T. mode (lucky boosts)</span></label>
           <div class="divider"></div>
@@ -111,15 +123,15 @@
           </div>
         </div>
         <div class="col card">
-          <div class="section-title"><h2>what's inside</h2><span class="pill">v1</span></div>
+          <h2>what's inside</h2>
           <ul>
-            <li>Top-5 European leagues + MLS + Saudi + J-League (10 clubs each)</li>
-            <li>Contracts with duration, agent cut, taxes by league</li>
-            <li>Economy: balance, buy house/car, net income</li>
-            <li>Injuries & bans (doping), short to career-ending</li>
-            <li>Cups & awards at season end</li>
-            <li>Transfer rumors feed and offers</li>
-            <li>Skip season, retirement button with career summary graph</li>
+            <li>Top-5 + MLS + Saudi + J-League (10 clubs each)</li>
+            <li>Contracts (weeks, agent %, clause), taxes & net income</li>
+            <li>Transfers, trials, rumors, raise w/ cooldown</li>
+            <li>Injuries & doping bans; decline after prime</li>
+            <li>Cup chance per week; end-season awards</li>
+            <li>Economy: balance, buy house/car</li>
+            <li>Skip season & retirement summary graph</li>
           </ul>
         </div>
       </div>
@@ -163,7 +175,7 @@
         <div class="col">
           <div class="card">
             <h2>this week</h2>
-            <div id="fixture" class="muted">no club, find a contract to play matches</div>
+            <div id="fixture" class="muted">no club, request trials or open market</div>
             <div class="toolbar" style="margin-top:8px">
               <button id="btnTrain" class="alt">Train</button>
               <button id="btnRest">Rest</button>
@@ -177,10 +189,10 @@
             </div>
           </div>
           <div class="card">
-            <div class="section-title"><h2>log</h2><button id="btnRumors" class="alt">New rumors</button></div>
+            <div class="section-title" style="display:flex; align-items:center; justify-content:space-between"><h2>log</h2><button id="btnRumors" class="alt">New rumors</button></div>
             <div id="log" class="log"></div>
           </div>
-          <div class="card">
+          <div class="card" id="rumorsPanel">
             <h2>rumors</h2>
             <div id="rumors" class="list"></div>
           </div>
@@ -217,11 +229,13 @@
       </div>
 
       <!-- Retirement modal -->
-      <div id="retireModal" class="hidden card" style="position:fixed; inset:0; margin:auto; max-width:760px; max-height:80vh; overflow:auto; padding:20px; border:2px solid #475569">
-        <h2>Career summary</h2>
-        <div id="retireSummary"></div>
-        <div id="retireGraph" style="margin-top:10px"></div>
-        <div class="toolbar" style="margin-top:10px"><button id="closeRetire" class="alt">Close</button></div>
+      <div id="retireModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="retireTitle">
+        <div class="panel">
+          <h2 id="retireTitle">Career summary</h2>
+          <div id="retireSummary"></div>
+          <div id="retireGraph" style="margin-top:10px"></div>
+          <div class="toolbar" style="margin-top:10px"><button id="closeRetire" class="alt">Close</button></div>
+        </div>
       </div>
     </div>
   </div>
@@ -234,7 +248,7 @@
   const FX = { EUR:1, GBP:1.17, USD:0.92 }; // to EUR
   const CUR = { EUR:'€', GBP:'£', USD:'$' };
 
-  // Leagues: top-5 + MLS + Saudi + J-League (10 clubs each), with prestige, salaryMult, tax, localCurrency
+  // Leagues
   const L = (name, prestige, salaryMult, tax, c, clubs) => ({name, prestige, salaryMult, tax, c, clubs});
   const C = (n,lvl)=>({n,lvl});
   const LEAGUES = [
@@ -269,14 +283,7 @@
   const round=(v,d=0)=>{const m=Math.pow(10,d);return Math.round(v*m)/m};
   const pick = (arr)=>arr[Math.floor(Math.random()*arr.length)];
   const moneyFmt = (m,cur=s.currency)=>`${CUR[cur]}${round((cur==='GBP'||cur==='USD')? m/FX[cur] : m,2)}m`;
-  const kToWeeklyNet = (k, lg)=>{ // k=thousand per week gross
-    const agent = s.contract? s.contract.agentPct : 0.03;
-    const tax = lg?.tax ?? 0.4;
-    const gross = k;
-    const afterAgent = gross*(1-agent);
-    const net = afterAgent*(1-tax);
-    return net; // in thousands of local currency per week
-  };
+  const kToWeeklyNet = (k, lg)=>{ const agent = s.contract? s.contract.agentPct : 0.03; const tax = lg?.tax ?? 0.4; return k*(1-agent)*(1-tax); };
 
   // ====== DOM ======
   const $ = (id)=>document.getElementById(id);
@@ -314,9 +321,7 @@
     const ovrF = Math.pow(s.ovr/60,2);
     const fameF = 1 + s.fame/350;
     const leaguePrestige = s.league? s.league.prestige : 0.8;
-    let base = 0.8 + ovrF*9 + Math.max(0,form-6)*2; // millions
-    if(s.goat) base *= 1.15;
-    return round(base * posMult * ageF * fameF * leaguePrestige, 1);
+    let base = 0.8 + ovrF*9 + Math.max(0,form-6)*2; if(s.goat) base *= 1.15; return round(base * posMult * ageF * fameF * leaguePrestige, 1);
   }
 
   function draw(){
@@ -331,12 +336,8 @@
     famePill.textContent = `Fame ${s.fame}`;
     const valEUR = marketValueEUR();
     valuePill.textContent = `Value ${moneyFmt(valEUR,'EUR')}`;
-    // push value history once per week
     const stamp = `${s.season}-${s.week}`;
-    if(!s._vhStamp || s._vhStamp!==stamp){
-      s.valueHistory.push({season:s.season, week:s.week, age:s.age, value:valEUR});
-      s._vhStamp = stamp;
-    }
+    if(!s._vhStamp || s._vhStamp!==stamp){ s.valueHistory.push({season:s.season, week:s.week, age:s.age, value:valEUR}); s._vhStamp = stamp; }
 
     injuryPill.textContent = s.injury ? `Injured: ${s.injury.name} (${s.injury.weeks}w)` : 'Healthy';
     injuryPill.style.background = s.injury ? '#b91c1c' : '#16a34a';
@@ -357,86 +358,28 @@
     renderAssets();
   }
 
-  function renderContract(){
-    if(!s.contract){ contractBox.textContent = 'no active contract'; return; }
-    const clauseStr = s.contract.clauseM ? ' • release clause '+moneyFmt(s.contract.clauseM,'EUR') : '';
-    contractBox.innerHTML = 'contract: <b>'+s.contract.weeks+' weeks</b> • wage <b>'+s.salary+'k/w</b> • agent <b>'+Math.round(s.contract.agentPct*100)+'%</b>'+clauseStr;
-  }
-
-  function renderCareer(){
-    const avg = s.stats.apps ? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00';
-    careerEl.innerHTML = `
-      <div>apps: <b>${s.stats.apps}</b> • goals: <b>${s.stats.goals}</b> • assists: <b>${s.stats.ast}</b> • clean sheets: <b>${s.stats.cs}</b></div>
-      <div>avg rating: <b>${avg}</b></div>
-      <div>club: <b>${s.club? s.club.name : 'free agent'}</b> • league: <b>${s.league? s.league.name : '—'}</b> • salary: <b>${s.salary}k/w</b></div>
-      <div>market value: <b>${moneyFmt(marketValueEUR(),'EUR')}</b></div>
-    `;
-  }
-  function renderAssets(){
-    assetsEl.innerHTML = `assets: ${s.assets.house? '🏠 house' : '—'} ${s.assets.car? ' • 🚗 car':''}`;
-  }
+  function renderContract(){ if(!s.contract){ contractBox.textContent = 'no active contract'; return; } const clauseStr = s.contract.clauseM ? ' • release clause '+moneyFmt(s.contract.clauseM,'EUR') : ''; contractBox.innerHTML = 'contract: <b>'+s.contract.weeks+' weeks</b> • wage <b>'+s.salary+'k/w</b> • agent <b>'+Math.round(s.contract.agentPct*100)+'%</b>'+clauseStr; }
+  function renderCareer(){ const avg = s.stats.apps ? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00'; careerEl.innerHTML = `<div>apps: <b>${s.stats.apps}</b> • goals: <b>${s.stats.goals}</b> • assists: <b>${s.stats.ast}</b> • clean sheets: <b>${s.stats.cs}</b></div><div>avg rating: <b>${avg}</b></div><div>club: <b>${s.club? s.club.name : 'free agent'}</b> • league: <b>${s.league? s.league.name : '—'}</b> • salary: <b>${s.salary}k/w</b></div><div>market value: <b>${moneyFmt(marketValueEUR(),'EUR')}</b></div>`; }
+  function renderAssets(){ assetsEl.innerHTML = `assets: ${s.assets.house? '🏠 house' : '—'} ${s.assets.car? ' • 🚗 car':''}`; }
 
   // ====== WEEK / SEASON FLOW ======
   function nextWeek(){
-    // pay salary weekly if contracted
-    if(s.contract && s.league){
-      const local = s.league.c; // local currency
-      const netK = kToWeeklyNet(s.salary, s.league); // in local
-      const netEURm = (netK/1000) * FX[local];
-      s.money += netEURm; // EUR millions
-      log(`paid ${CUR[local]}${Math.round(netK)}k net (${moneyFmt(netEURm,'EUR')})`);
-      // contract countdown
-      s.contract.weeks -= 1; if(s.contract.weeks<=0){ log('contract expired'); s.contract=null; }
-    }
-
-    // bans and injuries countdown
+    if(s.contract && s.league){ const local = s.league.c; const netK = kToWeeklyNet(s.salary, s.league); const netEURm = (netK/1000) * FX[local]; s.money += netEURm; log(`paid ${CUR[local]}${Math.round(netK)}k net (${moneyFmt(netEURm,'EUR')})`); s.contract.weeks -= 1; if(s.contract.weeks<=0){ log('contract expired'); s.contract=null; } }
     if(s.ban){ s.ban.weeks -= 1; if(s.ban.weeks<=0){ log('ban lifted'); s.ban=null; } }
     if(s.injury){ s.injury.weeks -= 1; for(const k in s.skills){ s.skills[k] = clamp(s.skills[k] - 1, 30, 99); } if(s.injury.weeks<=0){ log(`injury healed: ${s.injury.name}`); s.injury=null; } }
-
     s.week += 1; if(s.week > SEASON_WEEKS){ seasonEnd(); s.week = 1; s.season += 1; s.age += 1; log(`new season. age now ${s.age}`); seasonStart(); }
   }
 
   function seasonStart(){ scheduleMatch(); generateRumors(); draw(); }
-
-  function seasonEnd(){
-    // awards basic based on player's form
-    const avg = s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0;
-    if(avg>=7.8) log(`award shortlists: ${pick(AWARDS)}`);
-    if(s.stats.goals>=20) log('Golden Boot contender');
-    // save season snapshot (include apps for retirement totals)
-    s.stats.seasons.push({season:s.season, age:s.age, apps:s.stats.apps, goals:s.stats.goals, ast:s.stats.ast, cs:s.stats.cs, avg:round(avg,2), value:marketValueEUR()});
-    // aging decline
-    if(s.age>26){ const baseDecline = s.age>=30? 2:1; const formDecline = avg<6.8? 2:0; for(const k in s.skills){ s.skills[k]=clamp(s.skills[k]-baseDecline-formDecline,30,99);} log(`aging decline applied`); }
-    // reset seasonal stats
-    s.stats.apps=0; s.stats.goals=0; s.stats.ast=0; s.stats.cs=0; s.stats.ratingSum=0;
-  }
+  function seasonEnd(){ const avg = s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0; if(avg>=7.8) log(`award shortlists: ${pick(AWARDS)}`); if(s.stats.goals>=20) log('Golden Boot contender'); s.stats.seasons.push({season:s.season, age:s.age, apps:s.stats.apps, goals:s.stats.goals, ast:s.stats.ast, cs:s.stats.cs, avg:round(avg,2), value:marketValueEUR()}); if(s.age>26){ const baseDecline = s.age>=30? 2:1; const formDecline = avg<6.8? 2:0; for(const k in s.skills){ s.skills[k]=clamp(s.skills[k]-baseDecline-formDecline,30,99);} log(`aging decline applied`); } s.stats.apps=0; s.stats.goals=0; s.stats.ast=0; s.stats.cs=0; s.stats.ratingSum=0; }
 
   // ====== FIXTURES / CUPS ======
-  function scheduleMatch(){
-    if(!s.club){ s.fixture=null; return; }
-    const roll = Math.random();
-    const isCup = roll<0.15; // small chance of cup match
-    const lg = s.league;
-    const opp = pick(lg.clubs);
-    s.fixture = {home:s.club.name, away:opp.n, strength:opp.lvl, cup: isCup? pick(['League Cup','National Cup','Europa']) : null};
-    log(`match scheduled: ${s.fixture.home} vs ${s.fixture.away}${isCup? ' • '+s.fixture.cup:''}`);
-  }
+  function scheduleMatch(){ if(!s.club){ s.fixture=null; return; } const isCup = Math.random()<0.15; const lg = s.league; const opp = pick(lg.clubs); s.fixture = {home:s.club.name, away:opp.n, strength:opp.lvl, cup: isCup? pick(['League Cup','National Cup','Europa']) : null}; log(`match scheduled: ${s.fixture.home} vs ${s.fixture.away}${isCup? ' • '+s.fixture.cup:''}`); }
 
   // ====== INJURIES & BANS ======
-  function randomInjury(){
-    const table = [
-      {name:'Bruised foot', min:1, max:2, prob:0.30},
-      {name:'Muscle strain', min:2, max:4, prob:0.24},
-      {name:'Sprained ankle', min:3, max:6, prob:0.18},
-      {name:'Ligament tear', min:8, max:16, prob:0.08},
-      {name:'Fracture', min:10, max:20, prob:0.05},
-      {name:'Career-ending', min:999, max:999, prob:0.01},
-      {name:'Concussion', min:1, max:3, prob:0.06}
-    ];
-    let r=Math.random(), acc=0; for(const it of table){ acc+=it.prob; if(r<=acc) return it; } return null;
-  }
+  function randomInjury(){ const table = [ {name:'Bruised foot', min:1, max:2, prob:0.30}, {name:'Muscle strain', min:2, max:4, prob:0.24}, {name:'Sprained ankle', min:3, max:6, prob:0.18}, {name:'Ligament tear', min:8, max:16, prob:0.08}, {name:'Fracture', min:10, max:20, prob:0.05}, {name:'Career-ending', min:999, max:999, prob:0.01}, {name:'Concussion', min:1, max:3, prob:0.06} ]; let r=Math.random(), acc=0; for(const it of table){ acc+=it.prob; if(r<=acc) return it; } return null; }
   function maybeInjure(context){ if(s.injury) return; const base=context==='match'?0.08:0.03; const physProtect=(s.skills.phys-50)/200; const chance=clamp(base-physProtect,0.01,0.12); if(Math.random()<chance){ const inj=randomInjury(); if(!inj)return; if(inj.name==='Career-ending'){ s.injury={name:inj.name,weeks:999}; log('career-ending injury! retire recommended'); } else { const w=Math.round(rnd(inj.min,inj.max)); s.injury={name:inj.name,weeks:w}; log(`injured: ${inj.name} (${w}w)`); } } }
-  function maybeBan(){ if(s.ban) return; const base=0.01; if(Math.random()<base){ const weeks=Math.round(rnd(2,8)); s.ban={name:'Doping ban',weeks}; log(`banned for doping (${weeks} weeks)`); } }
+  function maybeBan(){ if(s.ban) return; if(Math.random()<0.01){ const weeks=Math.round(rnd(2,8)); s.ban={name:'Doping ban',weeks}; log(`banned for doping (${weeks} weeks)`); } }
 
   // ====== TRANSFERS / CONTRACTS ======
   function salaryFor(level, lg){ const base=clamp((level-55)*1.5 + rnd(3,10),2,400); return Math.round(base*(lg?.salaryMult||1)); }
@@ -446,33 +389,7 @@
   function trials(){ s.offers = generateOffers(4); log('trial offers arrived'); renderOffers(); nextWeek(); draw(); }
   function openMarket(){ refreshOffers(); nextWeek(); draw(); }
   function leaveClub(){ if(!s.club){ log('already free agent'); return; } if(s.contract && s.contract.weeks>0){ log('cannot leave: contract active'); return; } log(`left ${s.club.name}`); s.club=null; s.league=null; s.salary=0; s.fixture=null; s.contract=null; draw(); }
-  function askRaise(){
-    if(!s.club||!s.contract){ log('no club to ask raise'); return; }
-
-    // cooldown: can only ask every 2 seasons (accepted or denied)
-    if(s.raiseCooldownUntilSeason && s.season < s.raiseCooldownUntilSeason){
-      log(`cannot ask for a raise until Season ${s.raiseCooldownUntilSeason}`);
-      return;
-    }
-
-    const avg = s.stats.apps ? s.stats.ratingSum/s.stats.apps : 6.0;
-
-    // tougher chance: scaled down and capped lower
-    let chance = 0.6 * (0.2 + (avg-6)*0.15 + (s.fame/200));
-    chance = clamp(chance, 0.03, 0.45);
-
-    if(Math.random() < chance){
-      const bump = Math.round(rnd(4,10)); // slightly smaller bump
-      s.salary += bump;
-      log(`raise accepted +${bump}k/w (next request available Season ${s.season+2})`);
-    } else {
-      log(`raise denied (next request available Season ${s.season+2})`);
-      s.morale = clamp(s.morale - 3, 0, 100);
-    }
-
-    s.raiseCooldownUntilSeason = s.season + 2;
-    draw();
-  }
+  function askRaise(){ if(!s.club||!s.contract){ log('no club to ask raise'); return; } if(s.raiseCooldownUntilSeason && s.season < s.raiseCooldownUntilSeason){ log(`cannot ask for a raise until Season ${s.raiseCooldownUntilSeason}`); return; } const avg=s.stats.apps? s.stats.ratingSum/s.stats.apps : 6.0; let chance = 0.6 * (0.2 + (avg-6)*0.15 + (s.fame/200)); chance = clamp(chance, 0.03, 0.45); if(Math.random()<chance){ const bump = Math.round(rnd(4,10)); s.salary += bump; log(`raise accepted +${bump}k/w (next request available Season ${s.season+2})`); } else { log(`raise denied (next request available Season ${s.season+2})`); s.morale = clamp(s.morale-3,0,100); } s.raiseCooldownUntilSeason = s.season + 2; draw(); }
 
   // ====== MATCH ENGINE ======
   function playMatch(){ if(!s.fixture || s.injury || s.ban) return; const opp=s.fixture.strength; const fatigue=clamp(1-(s.energy/140),0.6,1.0); const moraleBoost=1+(s.morale-50)/200; const posBias=s.pos==='ST'?1.08:s.pos==='CAM'?1.05:s.pos==='CM'?1.0:s.pos==='CB'?0.95:s.pos==='GK'?0.9:1.0; const perfBase=s.ovr*moraleBoost*posBias*(1-(1-fatigue)*0.5); const variance=rnd(-8,8); const performance=clamp(perfBase+variance,30,99); const teamStrength=(s.club? s.club.level:60)+(performance-60)*0.2; const oppStrength=opp; const goalChance=clamp((teamStrength-oppStrength+10)/40,0.08,0.65); const concedeChance=clamp((oppStrength-teamStrength+10)/40,0.08,0.65); const goalsFor=Math.max(0,Math.round(rnd(0,3)+(Math.random()<goalChance?1:0))); const goalsAgainst=Math.max(0,Math.round(rnd(0,3)+(Math.random()<concedeChance?1:0)));
@@ -485,7 +402,7 @@
     maybeInjure('match'); maybeBan(); s.fixture=null; nextWeek(); scheduleMatch(); draw(); }
 
   // ====== SKIP SEASON ======
-  function skipSeason(){ let guard=300; while(s.week<=SEASON_WEEKS && guard-- > 0){ if(s.club && !s.fixture) scheduleMatch(); if(s.injury||s.ban){ rest(); continue; } if(s.fixture) playMatch(); else { if(!s.club){ trials(); } else { rest(); } } if(s.week===1) break; } log('season skipped'); draw(); }
+  function skipSeason(){ let guard=300; while(s.week<=SEASON_WEEKS && guard-->0){ if(s.club && !s.fixture) scheduleMatch(); if(s.injury||s.ban){ rest(); continue; } if(s.fixture) playMatch(); else { if(!s.club){ trials(); } else { rest(); } } if(s.week===1) break; } log('season skipped'); draw(); }
 
   // ====== RUMORS ======
   function playerName(){ const f=['Leo','Cristian','Ney','Kyl','Erli','Buka','Luka','Kevin','Jude','Erik','Marco','Rafa']; const l=['Silva','Garcia','Lopez','Khan','Kim','Nakamura','Tavares','Hansen','Johansson','Benz','Rossi','Müller']; return pick(f)+' '+pick(l); }
@@ -497,30 +414,7 @@
   function buyCar(){ const cost=0.1; if(s.assets.car){ log('you already have a car'); return; } if(s.money<cost){ log('not enough balance for car'); return; } s.money-=cost; s.assets.car=true; log('bought a car'); draw(); }
 
   // ====== RETIREMENT ======
-  function retire(){
-    const sea = s.stats.seasons;
-    const sum = (arr,key)=>arr.reduce((a,x)=>a + (x[key]||0),0);
-    const totalApps = sum(sea,'apps') + (s.stats.apps||0);
-    const totalGoals = sum(sea,'goals') + (s.stats.goals||0);
-    const totalAst = sum(sea,'ast') + (s.stats.ast||0);
-    const totalCs = sum(sea,'cs') + (s.stats.cs||0);
-    const avg = s.stats.apps? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00';
-    const bestVal = s.valueHistory.length ? Math.max(...s.valueHistory.map(v=>v.value)) : marketValueEUR();
-
-    retireSummary.innerHTML = `
-      <div><b>${s.name}</b> • ${s.pos} • ${s.origin}</div>
-      <div>Seasons: ${s.season-1} • Clubs played: ${s.stats.seasons.length}+</div>
-      <div>Totals: apps ${totalApps}, goals ${totalGoals}, assists ${totalAst}, clean sheets ${totalCs}</div>
-      <div>Best value: ${moneyFmt(bestVal,'EUR')}</div>
-      <div>Final balance: ${moneyFmt(s.money)}</div>
-    `;
-    // value graph svg
-    const points = s.valueHistory.map((v,i)=>({x:i, y:v.value}));
-    const w=680,h=180; const pad=20; const maxY=Math.max(10,...points.map(p=>p.y)); const minY=0; const sx=(i)=>pad + i*( (w-2*pad)/Math.max(1,points.length-1) ); const sy=(y)=>h-pad - ( (y-minY)/(maxY-minY||1) )*(h-2*pad);
-    let d=''; points.forEach((p,i)=>{ d+= (i? 'L':'M')+sx(p.x)+','+sy(p.y)+' '; });
-    retireGraph.innerHTML = `<svg viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="#22c55e" stroke-width="2" /></svg>`;
-    retireModal.classList.remove('hidden');
-  }
+  function retire(){ const sea = s.stats.seasons; const sum = (arr,key)=>arr.reduce((a,x)=>a + (x[key]||0),0); const totalApps = sum(sea,'apps') + (s.stats.apps||0); const totalGoals = sum(sea,'goals') + (s.stats.goals||0); const totalAst = sum(sea,'ast') + (s.stats.ast||0); const totalCs = sum(sea,'cs') + (s.stats.cs||0); const avg = s.stats.apps? (s.stats.ratingSum/s.stats.apps).toFixed(2) : '0.00'; const bestVal = s.valueHistory.length ? Math.max(...s.valueHistory.map(v=>v.value)) : marketValueEUR(); retireSummary.innerHTML = `<div><b>${s.name}</b> • ${s.pos} • ${s.origin}</div><div>Seasons: ${s.season-1} • Clubs played: ${s.stats.seasons.length}+</div><div>Totals: apps ${totalApps}, goals ${totalGoals}, assists ${totalAst}, clean sheets ${totalCs}</div><div>Best value: ${moneyFmt(bestVal,'EUR')}</div><div>Final balance: ${moneyFmt(s.money)}</div>`; const points = s.valueHistory.map((v,i)=>({x:i, y:v.value})); const w=680,h=180; const pad=20; const maxY=Math.max(10,...points.map(p=>p.y)); const minY=0; const sx=(i)=>pad + i*( (w-2*pad)/Math.max(1,points.length-1) ); const sy=(y)=>h-pad - ( (y-minY)/(maxY-minY||1) )*(h-2*pad); let d=''; points.forEach((p,i)=>{ d+= (i? 'L':'M')+sx(p.x)+','+sy(p.y)+' '; }); retireGraph.innerHTML = `<svg viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="#22c55e" stroke-width="2" /></svg>`; retireModal.classList.add('show'); }
 
   // ====== ACTIONS ======
   function train(){ if(s.injury||s.ban){ log('cannot train while injured/banned'); nextWeek(); draw(); return; } const gain=Math.round(rnd(1,3)); const target=s.pos==='GK'? 'gk' : ['shoot','pass','pace','def','phys'][Math.floor(Math.random()*5)]; s.skills[target]=clamp(s.skills[target]+gain,30,99); s.energy=clamp(s.energy-Math.round(rnd(5,10)),0,100); s.morale=clamp(s.morale+Math.round(rnd(0,2)),0,100); maybeInjure('train'); log(`trained ${target} +${gain}`); nextWeek(); if(s.club&&!s.fixture) scheduleMatch(); draw(); }
@@ -543,7 +437,7 @@
 
   btnBuyHouse.onclick=()=>buyHouse(); btnBuyCar.onclick=()=>buyCar();
 
-  closeRetire.onclick=()=>retireModal.classList.add('hidden');
+  closeRetire.onclick=()=>retireModal.classList.remove('show');
 })();
 </script>
 </body>
